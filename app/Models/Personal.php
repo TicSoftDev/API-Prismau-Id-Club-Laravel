@@ -65,4 +65,8 @@ class Personal extends Model
     {
         return $this->hasMany(Invitado::class, 'usuario_que_invita_id');
     }
+    public function estados()
+    {
+        return $this->hasMany(Estados::class);
+    }
 }

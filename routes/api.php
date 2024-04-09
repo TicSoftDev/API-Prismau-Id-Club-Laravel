@@ -5,6 +5,7 @@ use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EspacioController;
+use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\PersonalController;
@@ -84,5 +85,8 @@ Route::group([
     Route::get('invitados', [InvitadoController::class, 'index']);
     Route::get('invitados/cantidad', [InvitadoController::class, 'create']);
     Route::post('invitados', [InvitadoController::class, 'store']);
+
+    //estados
+    Route::get('estados', [EstadosController::class, 'index']);
 
 });

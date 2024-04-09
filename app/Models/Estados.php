@@ -14,4 +14,9 @@ class Estados extends Model
         'Estado',
         'Motivo',
     ];
+
+    public function personal()
+    {
+        return $this->belongsTo(Personal::class);
+    }
 }
