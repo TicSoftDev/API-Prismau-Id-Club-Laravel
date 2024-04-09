@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('invitados', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('personal_id')->constrained('personals')->onDelete('cascade');
+            $table->string('Nombre');
+            $table->string('Apellidos');
+            $table->string('Telefono');
+            $table->string('TipoDocumento');
+            $table->string('Documento');
             $table->timestamps();
         });
     }

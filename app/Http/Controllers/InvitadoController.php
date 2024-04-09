@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invitado;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class InvitadoController extends Controller
@@ -12,7 +13,8 @@ class InvitadoController extends Controller
      */
     public function index()
     {
-        //
+        $invitados = Invitado::with('personal')->get();
+        return response()->json($invitados);
     }
 
     /**
@@ -20,7 +22,10 @@ class InvitadoController extends Controller
      */
     public function create()
     {
-        //
+        $inicioMes = Carbon::now()->startOfMonth();
+        $finMes = Carbon::now()->endOfMonth();
+        $cantidadInvitadosMes = Invitado::whereBetween('created_at', [$inicioMes, $finMes])->count();
+        return response()->json($cantidadInvitadosMes);
     }
 
     /**
@@ -28,7 +33,24 @@ class InvitadoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $inicioMes = Carbon::now()->startOfMonth();
+        $finMes = Carbon::now()->endOfMonth();
+
+        $cantidadInvitacionesMes = Invitado::where('Documento', $request->Documento)
+            ->whereBetween('created_at', [$inicioMes, $finMes])
+            ->count();
+        if ($cantidadInvitacionesMes >= 4) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Este invitado ya ha sido invitado 4 veces este mes.'
+            ], 200);
+        } else {
+            Invitado::create($request->all());
+            return response()->json([
+                'status' => true,
+                'message' => 'Creado con exito'
+            ], 201);
+        }
     }
 
     /**

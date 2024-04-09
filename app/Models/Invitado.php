@@ -8,4 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 class Invitado extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'personal_id',
+        'Nombre',
+        'Apellidos',
+        'Telefono',
+        'TipoDocumento',
+        'Documento',
+    ];
+
+    public function personal()
+    {
+        return $this->belongsTo(Personal::class);
+    }
 }

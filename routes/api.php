@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\FamiliarController;
+use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\PersonalController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
@@ -78,5 +79,10 @@ Route::group([
     Route::post('espacios/imagen/{id}', [EspacioController::class, 'changeImagen']);
     Route::put('espacios/{id}', [EspacioController::class, 'update']);
     Route::delete('espacios/{id}', [EspacioController::class, 'destroy']);
+
+    //invitados
+    Route::get('invitados', [InvitadoController::class, 'index']);
+    Route::get('invitados/cantidad', [InvitadoController::class, 'create']);
+    Route::post('invitados', [InvitadoController::class, 'store']);
 
 });

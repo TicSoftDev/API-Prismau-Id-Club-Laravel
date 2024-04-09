@@ -56,9 +56,13 @@ class Personal extends Model
         return $this->belongsTo(Personal::class, 'asociado_id');
     }
 
-    // Personal puede tener varios adherentes asociados a él
     public function adherentes()
     {
         return $this->hasMany(Personal::class, 'asociado_id');
+    }
+
+    public function invitados()
+    {
+        return $this->hasMany(Invitado::class, 'usuario_que_invita_id');
     }
 }
