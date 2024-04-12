@@ -17,7 +17,7 @@ class EmpleadoController extends Controller
      */
     public function index()
     {
-        $empleado = User::where('Rol', '4')->with('empleado')->get();
+        $empleado = User::whereIn('Rol', ['4', '6'])->with('empleado')->get();
         return response()->json($empleado);
     }
 

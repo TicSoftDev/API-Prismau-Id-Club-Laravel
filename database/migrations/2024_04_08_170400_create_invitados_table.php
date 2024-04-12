@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('Telefono');
             $table->string('TipoDocumento');
             $table->string('Documento');
+            $table->boolean('Status');
             $table->timestamps();
         });
     }

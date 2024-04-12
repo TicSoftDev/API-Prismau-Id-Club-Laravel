@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdherenteController;
 use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CargoController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\EstadosController;
@@ -88,5 +89,6 @@ Route::group([
 
     //estados
     Route::get('estados', [EstadosController::class, 'index']);
+
 
 });
