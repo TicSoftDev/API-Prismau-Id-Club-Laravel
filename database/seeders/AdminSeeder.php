@@ -15,35 +15,18 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         $userId = DB::table('users')->insertGetId([
-            'Documento' => '123',
-            'password' => Hash::make('Admin.123'),
-            'Rol' => 1
+            'Documento' => 'Adminprismau',
+            'password' => Hash::make('PrismaU.123'),
+            'Rol' => 0
         ]);
 
-        DB::table('personals')->insert([
+        DB::table('admins')->insert([
             'user_id' => $userId,
-            'asociado_id' => null,
-            "Nombre" => "Admin",
-            "Apellidos" => "Admin",
-            "Correo" => "Admin@gmail.com",
-            "Telefono" => "3108355539",
-            "FechaNacimiento" => "22-07-1985",
-            "LugarNacimiento" => "Sincelejo",
-            "TipoDocumento" => "CC",
-            "Documento" => "123",
-            "Sexo" => "Masculino",
-            "DireccionResidencia" => "CRA 8 2 - 34",
-            "CiudadResidencia" => "Sincelejo",
-            "TiempoResidencia" => "3 años",
-            "EstadoCivil" => "Soltero",
-            "Profesion" => "Ingeniero",
-            "Trabajo" => "TicSoft",
-            "cargo" => "Desarrollador",
-            "TiempoServicio" => "1 año",
-            "TelOficina" => "3125569648",
-            "DireccionOficina" => "CRA 8A 2 - 154",
-            "CiudadOficina" => "Sincelejo",
-            "Estado" => "1",
+            "Nombre" => "SuperAdmin",
+            "Apellidos" => "PrismaU",
+            "Correo" => "superadmin@prismau.com",
+            "Telefono" => "0000000000",
+            "Estado" => 1,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

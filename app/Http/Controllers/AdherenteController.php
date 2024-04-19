@@ -84,7 +84,7 @@ class AdherenteController extends Controller
         if (is_null($usuario)) {
             return response()->json(["message" => "no encontrado"], 404);
         }
-        if ($usuario->Estado == "0") {
+        if ($usuario->Estado == 0) {
             $estado = 1;
             $estadoString = "Activo";
         } else {

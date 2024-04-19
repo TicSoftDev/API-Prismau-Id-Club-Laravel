@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('Documento')->unique();         
             $table->string('password');
-            $table->string('Rol');
+            $table->integer('Rol');
             $table->timestamps();
         });
     }

@@ -26,7 +26,7 @@ class EmpleadoController extends Controller
      */
     public function create()
     {
-        $empleado = User::where('Rol', '4')->count();
+        $empleado = User::whereIn('Rol', ['4', '6'])->count();
         return response()->json($empleado);
     }
 

@@ -16,11 +16,13 @@ class AuthController extends Controller
 
         if (!empty($token)) {
             $user = JWTAuth::user();
-            if ($user->Rol == 4 || $user->Rol == 6) {
+            if ($user->Rol == 0 || $user->Rol == 1) {
+                $usuario =  $user->admin;
+            } else if ($user->Rol == 4 || $user->Rol == 6) {
                 $usuario =  $user->empleado;
-            }else if ($user->Rol == 5) {
+            } else if ($user->Rol == 5) {
                 $usuario =  $user->familiar;
-            }else {
+            } else {
                 $usuario =  $user->personal;
             }
             return response()->json([

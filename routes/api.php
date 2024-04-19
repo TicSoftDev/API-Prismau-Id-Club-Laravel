@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdherenteController;
+use App\Http\Controllers\AdminsController;
 use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CargoController;
@@ -33,7 +34,13 @@ Route::post("login", [AuthController::class, "login"]);
 
 Route::group([
     "middleware" => ["auth:api"]
-], function(){
+], function () {
+
+    //admin 
+    Route::get('admin', [AdminsController::class, 'index']);
+    Route::post('admin', [AdminsController::class, 'store']);
+    Route::put('admin/{id}', [AdminsController::class, 'update']);
+    Route::delete('admin/{id}', [AdminsController::class, 'destroy']);
 
     //usuario
     Route::put('usuario/{id}', [UsuarioController::class, 'update']);
@@ -90,6 +97,4 @@ Route::group([
 
     //estados
     Route::get('estados', [EstadosController::class, 'index']);
-
-
 });

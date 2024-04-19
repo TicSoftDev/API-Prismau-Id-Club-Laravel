@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('CiudadResidencia')->nullable();
             $table->string('EstadoCivil')->nullable();
             $table->string('Cargo')->nullable();
-            $table->string('Estado');
+            $table->integer('Estado');
             $table->timestamps();
         });
     }

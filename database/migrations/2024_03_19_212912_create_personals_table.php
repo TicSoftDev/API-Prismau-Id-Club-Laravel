@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('TelOficina')->nullable();
             $table->string('DireccionOficina')->nullable();
             $table->string('CiudadOficina')->nullable();
-            $table->string('Estado');
+            $table->integer('Estado');
             $table->timestamps();
             $table->foreign('asociado_id')->references('id')->on('users')->onDelete('set null');
         });

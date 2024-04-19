@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('espacios', function (Blueprint $table) {
+        Schema::create('admins', function (Blueprint $table) {
             $table->id();
-            $table->string('imagen')->nullable();
-            $table->string('Descripcion')->nullable();
-            $table->integer('Estado')->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('Nombre')->nullable();
+            $table->string('Apellidos')->nullable();
+            $table->string('Correo')->unique();
+            $table->string('Telefono')->nullable();
+            $table->integer('Estado');
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('espacios');
+        Schema::dropIfExists('admins');
     }
 };

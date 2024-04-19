@@ -78,7 +78,7 @@ class AsociadoController extends Controller
     public function changeStatus(String $id, Request $request)
     {
         $asociado = Personal::with('familiares')->findOrFail($id);
-        if ($asociado->Estado == "0") {
+        if ($asociado->Estado == 0) {
             $estado = 1;
             $estadoString = "Activo";
         } else {

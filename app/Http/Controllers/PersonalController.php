@@ -63,7 +63,7 @@ class PersonalController extends Controller
         $personal->TelOficina = $request->TelOficina;
         $personal->DireccionOficina = $request->DireccionOficina;
         $personal->CiudadOficina = $request->CiudadOficina;
-        $personal->Estado = $request->Estado;
+        $personal->Estado = 1;
         $rest = $personal->save();
 
         if ($rest > 0) {
@@ -125,7 +125,6 @@ class PersonalController extends Controller
             "TelOficina" => $request->TelOficina,
             "DireccionOficina" => $request->DireccionOficina,
             "CiudadOficina" => $request->CiudadOficina,
-            "Estado" => $request->Estado,
         ]);
 
         if ($res > 0) {
