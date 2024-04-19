@@ -32,7 +32,7 @@ class UsuarioController extends Controller
     {
         $user = User::create([
             'Nombre' => $request->Nombre,
-            'Apellidos' => $request->Apellidos, 
+            'Apellidos' => $request->Apellidos,
             'Fecha' => $request->Fecha,
             'Edad' => $request->Edad,
             'Documento' => $request->Documento,
@@ -50,9 +50,28 @@ class UsuarioController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(String $documento)
     {
-        //
+        $user = User::where('Documento', $documento)->first();
+        if ($user) {
+            # code...
+            if ($user->Rol == 4 || $user->Rol == 6) {
+                $usuario =  $user->empleado;
+            } else if ($user->Rol == 5) {
+                $usuario =  $user->familiar;
+            } else {
+                $usuario =  $user->personal;
+            }
+            return response()->json([
+                "status" => true,
+                "user" => $usuario,
+                "credenciales" => $user,
+            ]);
+        } else {
+            return response()->json([
+                "status" => false,
+            ]);
+        }
     }
 
     /**

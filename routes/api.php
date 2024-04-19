@@ -37,6 +37,7 @@ Route::group([
 
     //usuario
     Route::put('usuario/{id}', [UsuarioController::class, 'update']);
+    Route::get('usuario/{id}', [UsuarioController::class, 'show']);
 
     //personal
     Route::post('personal', [PersonalController::class, 'store']);

@@ -16,6 +16,7 @@ class Invitado extends Model
         'Telefono',
         'TipoDocumento',
         'Documento',
+        'Status',
     ];
 
     public function personal()
