@@ -45,10 +45,11 @@ class InvitadoController extends Controller
                 'message' => 'Este invitado ya ha sido invitado 4 veces este mes.'
             ], 200);
         } else {
-            Invitado::create($request->all());
+            $invitado =  Invitado::create($request->all());
             return response()->json([
                 'status' => true,
-                'message' => 'Creado con exito'
+                'message' => 'Creado con exito',
+                'data' => $invitado
             ], 201);
         }
     }
@@ -73,9 +74,17 @@ class InvitadoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Invitado $invitado)
+    public function update(String $id)
     {
-        //
+        $invitado = Invitado::find($id);
+        $invitado->update([
+            'Status' => true,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Actualizado con exito',
+        ]);
     }
 
     /**

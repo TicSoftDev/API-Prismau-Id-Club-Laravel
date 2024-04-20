@@ -97,6 +97,7 @@ Route::group([
     Route::get('invitados/cantidad', [InvitadoController::class, 'create']);
     Route::get('invitados/cantidad/{id}', [InvitadoController::class, 'show']);
     Route::post('invitados', [InvitadoController::class, 'store']);
+    Route::put('invitados/{id}', [InvitadoController::class, 'update']);
 
     //estados
     Route::get('estados', [EstadosController::class, 'index']);
