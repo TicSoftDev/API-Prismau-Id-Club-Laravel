@@ -77,9 +77,10 @@ class FamiliarController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Familiar $Familiar)
+    public function show(String $id)
     {
-        //
+        $familiar = Familiar::where('personal_id', $id)->get()->count();
+        return response()->json($familiar);
     }
 
     /**

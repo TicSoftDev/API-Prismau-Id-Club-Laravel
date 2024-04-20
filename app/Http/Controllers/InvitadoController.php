@@ -56,9 +56,10 @@ class InvitadoController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Invitado $invitado)
+    public function show(String $id)
     {
-        //
+        $familiar = Invitado::where('personal_id', $id)->get()->count();
+        return response()->json($familiar);
     }
 
     /**
