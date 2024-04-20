@@ -24,7 +24,8 @@ class AdminsController extends Controller
      */
     public function create()
     {
-        //
+        $admins = User::with('admin')->where('Rol', 1)->count();
+        return response()->json($admins);
     }
 
     /**

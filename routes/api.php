@@ -38,6 +38,7 @@ Route::group([
 
     //admin 
     Route::get('admin', [AdminsController::class, 'index']);
+    Route::get('admin/cantidad', [AdminsController::class, 'create']);
     Route::post('admin', [AdminsController::class, 'store']);
     Route::put('admin/{id}', [AdminsController::class, 'update']);
     Route::delete('admin/{id}', [AdminsController::class, 'destroy']);
