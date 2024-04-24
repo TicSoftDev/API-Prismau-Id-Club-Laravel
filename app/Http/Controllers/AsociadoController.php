@@ -14,13 +14,14 @@ class AsociadoController extends Controller
      */
     public function index()
     {
-        $asociados = User::with('personal')
+        $asociado = User::with('personal')
             ->where('Rol', 2)
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 1);
             })
-            ->get();
-        return response()->json($asociados);
+            ->get()
+            ->sortBy('personal.Nombre');
+        return response()->json($asociado->values()->all());
     }
 
     /**
@@ -44,13 +45,14 @@ class AsociadoController extends Controller
      */
     public function show()
     {
-        $asociados = User::with('personal')
+        $asociado = User::with('personal')
             ->where('Rol', 2)
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 0);
             })
-            ->get();
-        return response()->json($asociados);
+            ->get()
+            ->sortBy('personal.Nombre');
+        return response()->json($asociado->values()->all());
     }
 
     /**

@@ -19,9 +19,12 @@ class AdherenteController extends Controller
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 1);
             })
-            ->get();
-        return response()->json($adherentes);
+            ->get()
+            ->sortBy('personal.Nombre');
+
+        return response()->json($adherentes->values()->all());
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -50,8 +53,9 @@ class AdherenteController extends Controller
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 0);
             })
-            ->get();
-        return response()->json($adherentes);
+            ->get()
+            ->sortBy('personal.Nombre'); 
+        return response()->json($adherentes->values()->all());
     }
 
     /**
@@ -101,7 +105,7 @@ class AdherenteController extends Controller
             'Estado' => $estadoString,
             'Motivo' => $request->Motivo
         ]);
-        
+
         return response()->json([
             "message" => "hecho"
         ], 201);
