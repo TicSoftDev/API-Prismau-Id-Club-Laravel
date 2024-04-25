@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PersonalRequest;
 use App\Models\Familiar;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -33,10 +32,8 @@ class FamiliarController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(PersonalRequest $request)
+    public function store(Request $request)
     {
-        $request->validated();
-
         $user = User::create([
             'Documento' => $request->Documento,
             'password' => Hash::make($request->Documento),
@@ -94,7 +91,7 @@ class FamiliarController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(PersonalRequest $request, string $id)
+    public function update(Request $request, string $id)
     {
         $usuario = User::find($id);
         $usuario->update([
