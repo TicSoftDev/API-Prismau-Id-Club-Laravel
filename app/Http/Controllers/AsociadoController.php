@@ -14,15 +14,20 @@ class AsociadoController extends Controller
      */
     public function index()
     {
-        $asociado = User::with('personal')
+        $adherentes = User::with(['personal' => function ($query) {
+            $query->withCount('familiares');
+        }])
             ->where('Rol', 2)
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 1);
             })
             ->get()
             ->sortBy('personal.Nombre');
-        return response()->json($asociado->values()->all());
+
+        return response()->json($adherentes->values()->all());
     }
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -45,14 +50,17 @@ class AsociadoController extends Controller
      */
     public function show()
     {
-        $asociado = User::with('personal')
+        $adherentes = User::with(['personal' => function ($query) {
+            $query->withCount('familiares');
+        }])
             ->where('Rol', 2)
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 0);
             })
             ->get()
             ->sortBy('personal.Nombre');
-        return response()->json($asociado->values()->all());
+
+        return response()->json($adherentes->values()->all());
     }
 
     /**

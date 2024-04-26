@@ -14,7 +14,9 @@ class AdherenteController extends Controller
      */
     public function index()
     {
-        $adherentes = User::with('personal')
+        $adherentes = User::with(['personal' => function ($query) {
+            $query->withCount('familiares');
+        }])
             ->where('Rol', 3)
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 1);
@@ -24,7 +26,6 @@ class AdherenteController extends Controller
 
         return response()->json($adherentes->values()->all());
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -48,13 +49,16 @@ class AdherenteController extends Controller
      */
     public function show()
     {
-        $adherentes = User::with('personal')
+        $adherentes = User::with(['personal' => function ($query) {
+            $query->withCount('familiares');
+        }])
             ->where('Rol', 3)
             ->whereHas('personal', function ($query) {
                 $query->where('Estado', 0);
             })
             ->get()
-            ->sortBy('personal.Nombre'); 
+            ->sortBy('personal.Nombre');
+
         return response()->json($adherentes->values()->all());
     }
 
