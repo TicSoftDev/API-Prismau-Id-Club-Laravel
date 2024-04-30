@@ -38,7 +38,7 @@ return new class extends Migration
             $table->string('CiudadOficina')->nullable();
             $table->integer('Estado');
             $table->timestamps();
-            $table->foreign('asociado_id')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('asociado_id')->references('id')->on('personals')->onDelete('set null');
         });
     }
 

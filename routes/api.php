@@ -59,6 +59,7 @@ Route::group([
     Route::get('asociados/inactivos', [AsociadoController::class, 'show']);
     Route::get('asociados/cantidad', [AsociadoController::class, 'create']);
     Route::put('asociados/status/{id}', [AsociadoController::class, 'changeStatus']);
+    Route::put('asociados/adherente/{id}', [AsociadoController::class, 'changeToAdherente']);
 
     // adherentes
     Route::get('adherentes', [AdherenteController::class, 'index']);

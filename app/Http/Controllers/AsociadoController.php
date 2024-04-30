@@ -124,4 +124,24 @@ class AsociadoController extends Controller
             "message" => "hecho"
         ], 201);
     }
+
+    public function changeToAdherente(String $id)
+    {
+        $usuario = User::find($id);
+        if (is_null($usuario)) {
+            return response()->json(["message" => "no encontrado"], 404);
+        }
+        $usuario->update([
+            'Rol' => 3,
+        ]);
+        $adherente = Personal::where('asociado_id', $usuario->personal->id);
+        if (!is_null($adherente)) {
+            $adherente->update([
+                'asociado_id' => null,
+            ]);
+        }
+        return response()->json([
+            "message" => "hecho"
+        ], 201);
+    }
 }

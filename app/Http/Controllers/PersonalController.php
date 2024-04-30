@@ -34,6 +34,16 @@ class PersonalController extends Controller
      */
     public function store(PersonalRequest $request)
     {
+        if ($request->Rol == 3 && isset($request->asociado_id)) {
+            $existingPersonal = Personal::where('asociado_id', $request->asociado_id)->first();
+            if ($existingPersonal) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Este asociado ya está asignado a otro adherente."
+                ], 200);
+            }
+        }
+
         $user = User::create([
             'Documento' => $request->Documento,
             'password' => Hash::make($request->Documento),
@@ -73,10 +83,9 @@ class PersonalController extends Controller
         } else {
             response()->json([
                 "message" => "No se pudo agregar"
-            ],);
+            ], 500);
         }
     }
-
 
     /**
      * Display the specified resource.
@@ -100,10 +109,20 @@ class PersonalController extends Controller
     public function update(PersonalRequest $request, string $id)
     {
         $usuario = User::find($id);
+        $personal = $usuario->personal;
+        if ($request->Rol == 3 && $request->asociado_id && $request->asociado_id != $personal->asociado_id) {
+            $existingPersonal = Personal::where('asociado_id', $request->asociado_id)->first();
+            if ($existingPersonal && $existingPersonal->id != $personal->id) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Este asociado ya está asignado a otro adherente."
+                ], 200);
+            }
+        }
         $usuario->update([
             'Documento' => $request->Documento,
         ]);
-        $res = $usuario->personal->update([
+        $res = $personal->update([
             "asociado_id" => $request->asociado_id,
             "Nombre" => $request->Nombre,
             "Apellidos" => $request->Apellidos,
