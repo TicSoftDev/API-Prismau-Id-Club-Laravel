@@ -6,6 +6,7 @@ use App\Http\Requests\PersonalRequest;
 use App\Models\Empleado;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -18,11 +19,11 @@ class EmpleadoController extends Controller
     public function index()
     {
         $empleados = User::whereIn('Rol', ['4', '6'])
-        ->with('empleado')
-        ->get()
-        ->sortBy('empleado.Nombre'); 
+            ->with('empleado')
+            ->get()
+            ->sortBy('empleado.Nombre');
 
-    return response()->json($empleados->values()->all());
+        return response()->json($empleados->values()->all());
     }
 
     /**
@@ -39,40 +40,44 @@ class EmpleadoController extends Controller
      */
     public function store(PersonalRequest $request)
     {
-        $request->validated();
+        DB::beginTransaction();
+        try {
+            $request->validated();
 
-        $user = User::create([
-            'Documento' => $request->Documento,
-            'password' => Hash::make($request->Documento),
-            'Rol' => $request->Rol
-        ]);
+            $user = User::create([
+                'Documento' => $request->Documento,
+                'password' => Hash::make($request->Documento),
+                'Rol' => $request->Rol
+            ]);
 
-        $empleado = new Empleado();
-        $empleado->user_id = $user->id;
-        $empleado->Nombre = $request->Nombre;
-        $empleado->Apellidos = $request->Apellidos;
-        $empleado->Correo = $request->Correo;
-        $empleado->Telefono = $request->Telefono;
-        $empleado->FechaNacimiento = $request->FechaNacimiento;
-        $empleado->LugarNacimiento = $request->LugarNacimiento;
-        $empleado->TipoDocumento = $request->TipoDocumento;
-        $empleado->Documento = $request->Documento;
-        $empleado->Sexo = $request->Sexo;
-        $empleado->DireccionResidencia = $request->DireccionResidencia;
-        $empleado->CiudadResidencia = $request->CiudadResidencia;
-        $empleado->EstadoCivil = $request->EstadoCivil;
-        $empleado->Cargo = $request->Cargo;
-        $empleado->Estado = $request->Estado;
-        $rest = $empleado->save();
+            $empleado = new Empleado();
+            $empleado->user_id = $user->id;
+            $empleado->Nombre = $request->Nombre;
+            $empleado->Apellidos = $request->Apellidos;
+            $empleado->Correo = $request->Correo;
+            $empleado->Telefono = $request->Telefono;
+            $empleado->FechaNacimiento = $request->FechaNacimiento;
+            $empleado->LugarNacimiento = $request->LugarNacimiento;
+            $empleado->TipoDocumento = $request->TipoDocumento;
+            $empleado->Documento = $request->Documento;
+            $empleado->Sexo = $request->Sexo;
+            $empleado->DireccionResidencia = $request->DireccionResidencia;
+            $empleado->CiudadResidencia = $request->CiudadResidencia;
+            $empleado->EstadoCivil = $request->EstadoCivil;
+            $empleado->Cargo = $request->Cargo;
+            $empleado->Estado = $request->Estado;
+            $empleado->save();
 
-        if ($rest > 0) {
+            DB::commit();
+
             return response()->json([
                 "message" => "hecho"
             ], 201);
-        } else {
-            response()->json([
-                "message" => "No se pudo agregar"
-            ],);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "message" => "Error al actualizar: " . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -97,35 +102,37 @@ class EmpleadoController extends Controller
      */
     public function update(PersonalRequest $request, string $id)
     {
-        $usuario = User::find($id);
-        $usuario->update([
-            'Documento' => $request->Documento,
-        ]);
-        $res = $usuario->empleado->update([
-            "Nombre" => $request->Nombre,
-            "Apellidos" => $request->Apellidos,
-            "Correo" => $request->Correo,
-            "Telefono" => $request->Telefono,
-            "FechaNacimiento" => $request->FechaNacimiento,
-            "LugarNacimiento" => $request->LugarNacimiento,
-            "TipoDocumento" => $request->TipoDocumento,
-            "Documento" => $request->Documento,
-            "Sexo" => $request->Sexo,
-            "DireccionResidencia" => $request->DireccionResidencia,
-            "CiudadResidencia" => $request->CiudadResidencia,
-            "EstadoCivil" => $request->EstadoCivil,
-            "Cargo" => $request->Cargo,
-            "Estado" => $request->Estado,
-        ]);
-
-        if ($res > 0) {
+        DB::beginTransaction();
+        try {
+            $usuario = User::findOrFail($id);
+            $usuario->update([
+                'Documento' => $request->Documento,
+            ]);
+            $usuario->empleado->update([
+                "Nombre" => $request->Nombre,
+                "Apellidos" => $request->Apellidos,
+                "Correo" => $request->Correo,
+                "Telefono" => $request->Telefono,
+                "FechaNacimiento" => $request->FechaNacimiento,
+                "LugarNacimiento" => $request->LugarNacimiento,
+                "TipoDocumento" => $request->TipoDocumento,
+                "Documento" => $request->Documento,
+                "Sexo" => $request->Sexo,
+                "DireccionResidencia" => $request->DireccionResidencia,
+                "CiudadResidencia" => $request->CiudadResidencia,
+                "EstadoCivil" => $request->EstadoCivil,
+                "Cargo" => $request->Cargo,
+                "Estado" => $request->Estado,
+            ]);
+            DB::commit();
             return response()->json([
                 "message" => "hecho"
             ], 201);
-        } else {
-            response()->json([
-                "message" => "No se pudo agregar"
-            ],);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "message" => "Error al actualizar: " . $e->getMessage()
+            ], 500);
         }
     }
 

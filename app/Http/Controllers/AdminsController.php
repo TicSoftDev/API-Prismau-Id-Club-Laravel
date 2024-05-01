@@ -6,6 +6,7 @@ use App\Http\Requests\PersonalRequest;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AdminsController extends Controller
@@ -33,31 +34,34 @@ class AdminsController extends Controller
      */
     public function store(PersonalRequest $request)
     {
-        $user = User::create([
-            'Documento' => $request->Documento,
-            'password' => Hash::make($request->Clave),
-            'Rol' => $request->Rol
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'Documento' => $request->Documento,
+                'password' => Hash::make($request->Clave),
+                'Rol' => $request->Rol
+            ]);
 
-        $admin = new Admin();
-        $admin->user_id = $user->id;
-        $admin->Nombre = $request->Nombre;
-        $admin->Apellidos = $request->Apellidos;
-        $admin->Correo = $request->Correo;
-        $admin->Telefono = $request->Telefono;
-        $admin->Estado = 1;
-        $rest = $admin->save();
+            $admin = new Admin();
+            $admin->user_id = $user->id;
+            $admin->Nombre = $request->Nombre;
+            $admin->Apellidos = $request->Apellidos;
+            $admin->Correo = $request->Correo;
+            $admin->Telefono = $request->Telefono;
+            $admin->Estado = 1;
+            $admin->save();
 
-        if ($rest > 0) {
+            DB::commit();
+
             return response()->json([
                 "status" => true,
                 "message" => "hecho"
             ], 201);
-        } else {
-            response()->json([
-                "status" => false,
-                "message" => "No se pudo agregar"
-            ],);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "message" => "Error al actualizar: " . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -82,24 +86,27 @@ class AdminsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $usuario = User::find($id);
-        $res = $usuario->admin->update([
-            "Nombre" => $request->Nombre,
-            "Apellidos" => $request->Apellidos,
-            "Correo" => $request->Correo,
-            "Telefono" => $request->Telefono,
-        ]);
+        DB::beginTransaction(); 
+        try {
+            $usuario = User::findOrFail($id);
+            $usuario->admin->update([
+                "Nombre" => $request->Nombre,
+                "Apellidos" => $request->Apellidos,
+                "Correo" => $request->Correo,
+                "Telefono" => $request->Telefono,
+            ]);
 
-        if ($res > 0) {
+            DB::commit();
+
             return response()->json([
                 "status" => true,
                 "message" => "hecho"
             ], 201);
-        } else {
-            response()->json([
-                "status" => false,
-                "message" => "No se pudo agregar"
-            ],);
+        } catch (\Exception $e) {
+            DB::rollBack(); 
+            return response()->json([
+                "message" => "Error al actualizar: " . $e->getMessage()
+            ], 500);
         }
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Familiar;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -34,40 +35,44 @@ class FamiliarController extends Controller
      */
     public function store(Request $request)
     {
-        $user = User::create([
-            'Documento' => $request->Documento,
-            'password' => Hash::make($request->Documento),
-            'Rol' => $request->Rol
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'Documento' => $request->Documento,
+                'password' => Hash::make($request->Documento),
+                'Rol' => $request->Rol
+            ]);
 
-        $familiar = new Familiar();
-        $familiar->user_id = $user->id;
-        $familiar->personal_id = $request->personal_id;
-        $familiar->Nombre = $request->Nombre;
-        $familiar->Apellidos = $request->Apellidos;
-        $familiar->Correo = $request->Correo;
-        $familiar->Telefono = $request->Telefono;
-        $familiar->FechaNacimiento = $request->FechaNacimiento;
-        $familiar->LugarNacimiento = $request->LugarNacimiento;
-        $familiar->TipoDocumento = $request->TipoDocumento;
-        $familiar->Documento = $request->Documento;
-        $familiar->Sexo = $request->Sexo;
-        $familiar->DireccionResidencia = $request->DireccionResidencia;
-        $familiar->CiudadResidencia = $request->CiudadResidencia;
-        $familiar->EstadoCivil = $request->EstadoCivil;
-        $familiar->Cargo = $request->Cargo;
-        $familiar->Parentesco = $request->Parentesco;
-        $familiar->Estado = 1;
-        $rest = $familiar->save();
+            $familiar = new Familiar();
+            $familiar->user_id = $user->id;
+            $familiar->personal_id = $request->personal_id;
+            $familiar->Nombre = $request->Nombre;
+            $familiar->Apellidos = $request->Apellidos;
+            $familiar->Correo = $request->Correo;
+            $familiar->Telefono = $request->Telefono;
+            $familiar->FechaNacimiento = $request->FechaNacimiento;
+            $familiar->LugarNacimiento = $request->LugarNacimiento;
+            $familiar->TipoDocumento = $request->TipoDocumento;
+            $familiar->Documento = $request->Documento;
+            $familiar->Sexo = $request->Sexo;
+            $familiar->DireccionResidencia = $request->DireccionResidencia;
+            $familiar->CiudadResidencia = $request->CiudadResidencia;
+            $familiar->EstadoCivil = $request->EstadoCivil;
+            $familiar->Cargo = $request->Cargo;
+            $familiar->Parentesco = $request->Parentesco;
+            $familiar->Estado = 1;
+            $familiar->save();
 
-        if ($rest > 0) {
+            DB::commit();
+
             return response()->json([
                 "message" => "hecho"
             ], 201);
-        } else {
-            response()->json([
-                "message" => "No se pudo agregar"
-            ],);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "message" => "Error al actualizar: " . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -93,35 +98,39 @@ class FamiliarController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $usuario = User::find($id);
-        $usuario->update([
-            'Documento' => $request->Documento,
-        ]);
-        $res = $usuario->familiar->update([
-            "Nombre" => $request->Nombre,
-            "Apellidos" => $request->Apellidos,
-            "Correo" => $request->Correo,
-            "Telefono" => $request->Telefono,
-            "FechaNacimiento" => $request->FechaNacimiento,
-            "LugarNacimiento" => $request->LugarNacimiento,
-            "TipoDocumento" => $request->TipoDocumento,
-            "Documento" => $request->Documento,
-            "Sexo" => $request->Sexo,
-            "DireccionResidencia" => $request->DireccionResidencia,
-            "CiudadResidencia" => $request->CiudadResidencia,
-            "EstadoCivil" => $request->EstadoCivil,
-            "Cargo" => $request->Cargo,
-            "Parentesco" => $request->Parentesco,
-        ]);
+        DB::beginTransaction();
+        try {
+            $usuario = User::find($id);
+            $usuario->update([
+                'Documento' => $request->Documento,
+            ]);
+            $res = $usuario->familiar->update([
+                "Nombre" => $request->Nombre,
+                "Apellidos" => $request->Apellidos,
+                "Correo" => $request->Correo,
+                "Telefono" => $request->Telefono,
+                "FechaNacimiento" => $request->FechaNacimiento,
+                "LugarNacimiento" => $request->LugarNacimiento,
+                "TipoDocumento" => $request->TipoDocumento,
+                "Documento" => $request->Documento,
+                "Sexo" => $request->Sexo,
+                "DireccionResidencia" => $request->DireccionResidencia,
+                "CiudadResidencia" => $request->CiudadResidencia,
+                "EstadoCivil" => $request->EstadoCivil,
+                "Cargo" => $request->Cargo,
+                "Parentesco" => $request->Parentesco,
+            ]);
 
-        if ($res > 0) {
+            DB::commit();
+
             return response()->json([
                 "message" => "hecho"
             ], 201);
-        } else {
-            response()->json([
-                "message" => "No se pudo agregar"
-            ],);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "message" => "Error al actualizar: " . $e->getMessage()
+            ], 500);
         }
     }
 

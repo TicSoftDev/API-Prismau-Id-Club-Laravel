@@ -6,6 +6,7 @@ use App\Http\Requests\PersonalRequest;
 use App\Models\Personal;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -34,55 +35,58 @@ class PersonalController extends Controller
      */
     public function store(PersonalRequest $request)
     {
-        if ($request->Rol == 3 && isset($request->asociado_id)) {
-            $existingPersonal = Personal::where('asociado_id', $request->asociado_id)->first();
-            if ($existingPersonal) {
-                return response()->json([
-                    "status" => false,
-                    "message" => "Este asociado ya está asignado a otro adherente."
-                ], 200);
+        DB::beginTransaction();
+        try {
+            if ($request->Rol == 3 && isset($request->asociado_id)) {
+                $existingPersonal = Personal::where('asociado_id', $request->asociado_id)->first();
+                if ($existingPersonal) {
+                    return response()->json([
+                        "status" => false,
+                        "message" => "Este asociado ya está asignado a otro adherente."
+                    ], 200);
+                }
             }
-        }
 
-        $user = User::create([
-            'Documento' => $request->Documento,
-            'password' => Hash::make($request->Documento),
-            'Rol' => $request->Rol
-        ]);
+            $user = User::create([
+                'Documento' => $request->Documento,
+                'password' => Hash::make($request->Documento),
+                'Rol' => $request->Rol
+            ]);
 
-        $personal = new personal();
-        $personal->user_id = $user->id;
-        $personal->asociado_id = $request->asociado_id;
-        $personal->Nombre = $request->Nombre;
-        $personal->Apellidos = $request->Apellidos;
-        $personal->Correo = $request->Correo;
-        $personal->Telefono = $request->Telefono;
-        $personal->FechaNacimiento = $request->FechaNacimiento;
-        $personal->LugarNacimiento = $request->LugarNacimiento;
-        $personal->TipoDocumento = $request->TipoDocumento;
-        $personal->Documento = $request->Documento;
-        $personal->Sexo = $request->Sexo;
-        $personal->DireccionResidencia = $request->DireccionResidencia;
-        $personal->CiudadResidencia = $request->CiudadResidencia;
-        $personal->TiempoResidencia = $request->TiempoResidencia;
-        $personal->EstadoCivil = $request->EstadoCivil;
-        $personal->Profesion = $request->Profesion;
-        $personal->Trabajo = $request->Trabajo;
-        $personal->Cargo = $request->Cargo;
-        $personal->TiempoServicio = $request->TiempoServicio;
-        $personal->TelOficina = $request->TelOficina;
-        $personal->DireccionOficina = $request->DireccionOficina;
-        $personal->CiudadOficina = $request->CiudadOficina;
-        $personal->Estado = 1;
-        $rest = $personal->save();
+            $personal = new personal();
+            $personal->user_id = $user->id;
+            $personal->asociado_id = $request->asociado_id;
+            $personal->Nombre = $request->Nombre;
+            $personal->Apellidos = $request->Apellidos;
+            $personal->Correo = $request->Correo;
+            $personal->Telefono = $request->Telefono;
+            $personal->FechaNacimiento = $request->FechaNacimiento;
+            $personal->LugarNacimiento = $request->LugarNacimiento;
+            $personal->TipoDocumento = $request->TipoDocumento;
+            $personal->Documento = $request->Documento;
+            $personal->Sexo = $request->Sexo;
+            $personal->DireccionResidencia = $request->DireccionResidencia;
+            $personal->CiudadResidencia = $request->CiudadResidencia;
+            $personal->TiempoResidencia = $request->TiempoResidencia;
+            $personal->EstadoCivil = $request->EstadoCivil;
+            $personal->Profesion = $request->Profesion;
+            $personal->Trabajo = $request->Trabajo;
+            $personal->Cargo = $request->Cargo;
+            $personal->TiempoServicio = $request->TiempoServicio;
+            $personal->TelOficina = $request->TelOficina;
+            $personal->DireccionOficina = $request->DireccionOficina;
+            $personal->CiudadOficina = $request->CiudadOficina;
+            $personal->Estado = 1;
+            $personal->save();
 
-        if ($rest > 0) {
+            DB::commit();
             return response()->json([
                 "message" => "hecho"
             ], 201);
-        } else {
-            response()->json([
-                "message" => "No se pudo agregar"
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "message" => "No se pudo agregar, error: " . $e->getMessage()
             ], 500);
         }
     }
@@ -108,52 +112,54 @@ class PersonalController extends Controller
      */
     public function update(PersonalRequest $request, string $id)
     {
-        $usuario = User::find($id);
-        $personal = $usuario->personal;
-        if ($request->Rol == 3 && $request->asociado_id && $request->asociado_id != $personal->asociado_id) {
-            $existingPersonal = Personal::where('asociado_id', $request->asociado_id)->first();
-            if ($existingPersonal && $existingPersonal->id != $personal->id) {
-                return response()->json([
-                    "status" => false,
-                    "message" => "Este asociado ya está asignado a otro adherente."
-                ], 200);
+        DB::beginTransaction();
+        try {
+            $usuario = User::findOrFail($id);
+            $personal = $usuario->personal;
+            if ($request->Rol == 3 && $request->asociado_id && $request->asociado_id != $personal->asociado_id) {
+                $existingPersonal = Personal::where('asociado_id', $request->asociado_id)->first();
+                if ($existingPersonal && $existingPersonal->id != $personal->id) {
+                    return response()->json([
+                        "status" => false,
+                        "message" => "Este asociado ya está asignado a otro adherente."
+                    ], 200);
+                }
             }
-        }
-        $usuario->update([
-            'Documento' => $request->Documento,
-        ]);
-        $res = $personal->update([
-            "asociado_id" => $request->asociado_id,
-            "Nombre" => $request->Nombre,
-            "Apellidos" => $request->Apellidos,
-            "Correo" => $request->Correo,
-            "Telefono" => $request->Telefono,
-            "FechaNacimiento" => $request->FechaNacimiento,
-            "LugarNacimiento" => $request->LugarNacimiento,
-            "TipoDocumento" => $request->TipoDocumento,
-            "Documento" => $request->Documento,
-            "Sexo" => $request->Sexo,
-            "DireccionResidencia" => $request->DireccionResidencia,
-            "CiudadResidencia" => $request->CiudadResidencia,
-            "TiempoResidencia" => $request->TiempoResidencia,
-            "EstadoCivil" => $request->EstadoCivil,
-            "Profesion" => $request->Profesion,
-            "Trabajo" => $request->Trabajo,
-            "Cargo" => $request->Cargo,
-            "TiempoServicio" => $request->TiempoServicio,
-            "TelOficina" => $request->TelOficina,
-            "DireccionOficina" => $request->DireccionOficina,
-            "CiudadOficina" => $request->CiudadOficina,
-        ]);
-
-        if ($res > 0) {
+            $usuario->update([
+                'Documento' => $request->Documento,
+            ]);
+            $personal->update([
+                "asociado_id" => $request->asociado_id,
+                "Nombre" => $request->Nombre,
+                "Apellidos" => $request->Apellidos,
+                "Correo" => $request->Correo,
+                "Telefono" => $request->Telefono,
+                "FechaNacimiento" => $request->FechaNacimiento,
+                "LugarNacimiento" => $request->LugarNacimiento,
+                "TipoDocumento" => $request->TipoDocumento,
+                "Documento" => $request->Documento,
+                "Sexo" => $request->Sexo,
+                "DireccionResidencia" => $request->DireccionResidencia,
+                "CiudadResidencia" => $request->CiudadResidencia,
+                "TiempoResidencia" => $request->TiempoResidencia,
+                "EstadoCivil" => $request->EstadoCivil,
+                "Profesion" => $request->Profesion,
+                "Trabajo" => $request->Trabajo,
+                "Cargo" => $request->Cargo,
+                "TiempoServicio" => $request->TiempoServicio,
+                "TelOficina" => $request->TelOficina,
+                "DireccionOficina" => $request->DireccionOficina,
+                "CiudadOficina" => $request->CiudadOficina,
+            ]);
+            DB::commit();
             return response()->json([
                 "message" => "hecho"
-            ], 201);
-        } else {
-            response()->json([
-                "message" => "No se pudo agregar"
-            ],);
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack(); 
+            return response()->json([
+                "message" => "Error al actualizar: " . $e->getMessage()
+            ], 500);
         }
     }
 
