@@ -88,9 +88,10 @@ class FamiliarController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Familiar $Familiar)
+    public function edit(String $id)
     {
-        //
+        $familiar = Familiar::where('personal_id', $id)->get();
+        return response()->json($familiar);
     }
 
     /**

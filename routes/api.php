@@ -79,6 +79,7 @@ Route::group([
     //familiares
     Route::get('familiares/cantidad', [FamiliarController::class, 'create']);
     Route::get('familiares/cantidad/{id}', [FamiliarController::class, 'show']);
+    Route::get('familiares/socio/{id}', [FamiliarController::class, 'edit']);
     Route::get('familiares/{id}', [FamiliarController::class, 'index']);
     Route::post('familiares', [FamiliarController::class, 'store']);
     Route::post('familiares/imagen/{id}', [FamiliarController::class, 'changeImagen']);
