@@ -5,45 +5,42 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PersonalRequest;
 use App\Models\Empleado;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class EmpleadoController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function empleados()
     {
-        $empleados = User::whereIn('Rol', ['4', '6'])
-            ->with('empleado')
-            ->get()
-            ->sortBy('empleado.Nombre');
-
+        $empleados = Empleado::all()
+            ->sortBy('Nombre');
         return response()->json($empleados->values()->all());
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function cantidadEmpleados()
     {
-        $empleado = User::whereIn('Rol', ['4', '6'])->count();
+        $empleado = Empleado::count();
         return response()->json($empleado);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(PersonalRequest $request)
+    public function crearEmpleado(Request $request)
     {
         DB::beginTransaction();
         try {
-            $request->validated();
-
             $user = User::create([
                 'Documento' => $request->Documento,
                 'password' => Hash::make($request->Documento),
@@ -69,10 +66,23 @@ class EmpleadoController extends Controller
             $empleado->save();
 
             DB::commit();
-
             return response()->json([
+                "status" => true,
                 "message" => "hecho"
             ], 201);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1062) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Existe"
+                ], 200);
+            }
+            return response()->json([
+                "status" => false,
+                "message" => "No se pudo agregar, error: " . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -100,15 +110,29 @@ class EmpleadoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(PersonalRequest $request, string $id)
+    public function actualizarEmpleado(Request $request, string $id)
     {
         DB::beginTransaction();
+        $usuario = User::findOrFail($id);
+        $empleado = $usuario->empleado;
         try {
-            $usuario = User::findOrFail($id);
-            $usuario->update([
-                'Documento' => $request->Documento,
+            $request->validate([
+                'Documento' => 'required|string|max:255|unique:users,Documento,' . $usuario->id,
             ]);
-            $usuario->empleado->update([
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Existe',
+                'errors' => $e->errors(),
+            ], 200);
+        }
+        try {
+            if ($usuario->Documento != $request->Documento) {
+                $usuario->update([
+                    'Documento' => $request->Documento,
+                ]);
+            }
+            $empleado->update([
                 "Nombre" => $request->Nombre,
                 "Apellidos" => $request->Apellidos,
                 "Correo" => $request->Correo,
@@ -126,8 +150,9 @@ class EmpleadoController extends Controller
             ]);
             DB::commit();
             return response()->json([
+                "status" => true,
                 "message" => "hecho"
-            ], 201);
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -139,7 +164,7 @@ class EmpleadoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function eliminarEmpleado(string $id)
     {
         $empleado = User::find($id);
         if (is_null($empleado)) {
@@ -150,7 +175,10 @@ class EmpleadoController extends Controller
         }
         $empleado->empleado->delete();
         $empleado->delete();
-        return response()->json(["message" => "hecho"], 200);
+        return response()->json([
+            "status" => true,
+            "message" => "hecho"
+        ], 200);
     }
 
     public function changeImagen(Request $request, $id)
@@ -169,10 +197,12 @@ class EmpleadoController extends Controller
         $rest = $persona->save();
         if ($rest > 0) {
             return response()->json([
+                "status" => true,
                 "message" => "hecho"
             ], 201);
         } else {
             response()->json([
+                "status" => false,
                 "message" => "No se pudo agregar"
             ],);
         }

@@ -35,8 +35,13 @@ class Familiar extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function personal()
+    public function asociado()
     {
-        return $this->belongsTo(Personal::class);
+        return $this->belongsTo(Asociado::class);
+    }
+
+    public function adherente()
+    {
+        return $this->belongsTo(Adherente::class);
     }
 }

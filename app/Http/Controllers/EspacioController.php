@@ -12,7 +12,7 @@ class EspacioController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function espacios()
     {
         $espacios = Espacio::all();
         return response()->json($espacios);
@@ -21,7 +21,7 @@ class EspacioController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function contEspacios()
     {
         $espacios = Espacio::all()->count();
         return response()->json($espacios);
@@ -30,7 +30,7 @@ class EspacioController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function crearEspacio(Request $request)
     {
         $espacio = new Espacio([
             "Descripcion" => $request->Descripcion,
@@ -48,10 +48,12 @@ class EspacioController extends Controller
 
         if ($res) {
             return response()->json([
+                "status" => true,
                 "message" => "hecho"
             ], 201);
         } else {
             response()->json([
+                "status" => false,
                 "message" => "No se pudo agregar"
             ],);
         }
@@ -76,7 +78,7 @@ class EspacioController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function actualizarEspacio(Request $request, string $id)
     {
         $espacio = Espacio::find($id);
         $res = $espacio->update(([
@@ -85,10 +87,12 @@ class EspacioController extends Controller
         ]));
         if ($res) {
             return response()->json([
+                "status" => true,
                 "message" => "hecho"
             ], 201);
         } else {
             response()->json([
+                "status" => false,
                 "message" => "No se pudo actualizar"
             ],);
         }
@@ -97,7 +101,7 @@ class EspacioController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function eliminarEspacio(string $id)
     {
         $espacio = Espacio::find($id);
         if (is_null($espacio)) {
@@ -107,7 +111,10 @@ class EspacioController extends Controller
             Storage::disk('local')->delete(str_replace('/storage', 'public', $espacio->imagen));
         }
         $espacio->delete();
-        return response()->json(["message" => "hecho"], 200);
+        return response()->json([
+            "status" => true,
+            "message" => "hecho"
+        ], 200);
     }
 
     public function changeImagen(Request $request, $id)
@@ -126,10 +133,12 @@ class EspacioController extends Controller
         $rest = $espacio->save();
         if ($rest > 0) {
             return response()->json([
+                "status" => true,
                 "message" => "hecho"
             ], 201);
         } else {
             response()->json([
+                "status" => false,
                 "message" => "No se pudo agregar"
             ],);
         }

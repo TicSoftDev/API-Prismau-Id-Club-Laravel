@@ -50,17 +50,20 @@ class UsuarioController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(String $documento)
+    public function buscarUsuario(String $documento)
     {
         $user = User::where('Documento', $documento)->first();
         if ($user) {
-            # code...
-            if ($user->Rol == 4 || $user->Rol == 6) {
+            if ($user->Rol == 0 || $user->Rol == 1) {
+                $usuario =  $user->admin;
+            } else if ($user->Rol == 2) {
+                $usuario =  $user->asociado;
+            } else if ($user->Rol == 3) {
+                $usuario =  $user->adherente;
+            } else if ($user->Rol == 4 || $user->Rol == 6) {
                 $usuario =  $user->empleado;
             } else if ($user->Rol == 5) {
                 $usuario =  $user->familiar;
-            } else {
-                $usuario =  $user->personal;
             }
             return response()->json([
                 "status" => true,
@@ -85,7 +88,7 @@ class UsuarioController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, String $id)
+    public function cambiarPassword(Request $request, String $id)
     {
         $usuario = User::find($id);
         $usuario->password = Hash::make($request->password);

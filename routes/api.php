@@ -44,63 +44,73 @@ Route::group([
     Route::delete('admin/{id}', [AdminsController::class, 'destroy']);
 
     //usuario
-    Route::put('usuario/{id}', [UsuarioController::class, 'update']);
-    Route::get('usuario/{id}', [UsuarioController::class, 'show']);
+    Route::put('usuario/{id}', [UsuarioController::class, 'cambiarPassword']);
+    Route::get('usuario/{id}', [UsuarioController::class, 'buscarUsuario']);
 
     //personal
-    Route::post('personal', [PersonalController::class, 'store']);
-    Route::get('personal/familiares/{id}', [PersonalController::class, 'getPersonalWithFamiliares']);
-    Route::put('personal/{id}', [PersonalController::class, 'update']);
-    Route::post('personal/imagen/{id}', [PersonalController::class, 'changeImagen']);
-    Route::delete('personal/{id}', [PersonalController::class, 'destroy']);
+    // Route::post('personal', [PersonalController::class, 'store']);
+    // Route::get('personal/familiares/{id}', [PersonalController::class, 'getPersonalWithFamiliares']);
+    // Route::put('personal/{id}', [PersonalController::class, 'update']);
+    // Route::post('personal/imagen/{id}', [PersonalController::class, 'changeImagen']);
+    // Route::delete('personal/{id}', [PersonalController::class, 'destroy']);
 
     // asociados
-    Route::get('asociados', [AsociadoController::class, 'index']);
-    Route::get('asociados/inactivos', [AsociadoController::class, 'show']);
-    Route::get('asociados/cantidad', [AsociadoController::class, 'create']);
+    Route::post('asociados', [AsociadoController::class, 'crearAsociado']);
+    Route::post('asociados/imagen/{id}', [AsociadoController::class, 'changeImagen']);
+    Route::get('asociados', [AsociadoController::class, 'asociadosActivos']);
+    Route::get('asociados/inactivos', [AsociadoController::class, 'asociadosInactivos']);
+    Route::get('asociados/cantidad', [AsociadoController::class, 'cantidadAsociados']);
+    Route::get('asociados/familiares/{id}', [AsociadoController::class, 'asociadoConFamiliares']);
+    Route::put('asociados/{id}', [AsociadoController::class, 'actualizarAsociado']);
     Route::put('asociados/status/{id}', [AsociadoController::class, 'changeStatus']);
     Route::put('asociados/adherente/{id}', [AsociadoController::class, 'changeToAdherente']);
+    Route::delete('asociados/{id}', [AsociadoController::class, 'eliminarAsociado']);
 
     // adherentes
-    Route::get('adherentes', [AdherenteController::class, 'index']);
-    Route::get('adherentes/inactivos', [AdherenteController::class, 'show']);
-    Route::get('adherentes/cantidad', [AdherenteController::class, 'create']);
+    Route::post('adherentes', [AdherenteController::class, 'crearAdherente']);
+    Route::post('adherentes/imagen/{id}', [AdherenteController::class, 'changeImagen']);
+    Route::get('adherentes', [AdherenteController::class, 'adherentesActivos']);
+    Route::get('adherentes/inactivos', [AdherenteController::class, 'adherentesInactivos']);
+    Route::get('adherentes/cantidad', [AdherenteController::class, 'contAdherentes']);
+    Route::get('adherentes/familiares/{id}', [AdherenteController::class, 'adherenteConFamiliares']);
+    Route::put('adherentes/{id}', [AdherenteController::class, 'actualizarAdherente']);
     Route::put('adherentes/status/{id}', [AdherenteController::class, 'changeStatus']);
     Route::put('adherentes/asociado/{id}', [AdherenteController::class, 'changeToAsociado']);
+    Route::delete('adherentes/{id}', [AdherenteController::class, 'eliminarAdherente']);
 
     //empleados
-    Route::get('empleados', [EmpleadoController::class, 'index']);
-    Route::post('empleados', [EmpleadoController::class, 'store']);
-    Route::get('empleados/cantidad', [EmpleadoController::class, 'create']);
-    Route::put('empleados/{id}', [EmpleadoController::class, 'update']);
+    Route::post('empleados', [EmpleadoController::class, 'crearEmpleado']);
+    Route::get('empleados', [EmpleadoController::class, 'empleados']);
+    Route::get('empleados/cantidad', [EmpleadoController::class, 'cantidadEmpleados']);
+    Route::put('empleados/{id}', [EmpleadoController::class, 'actualizarEmpleado']);
     Route::post('empleados/imagen/{id}', [EmpleadoController::class, 'changeImagen']);
-    Route::delete('empleados/{id}', [EmpleadoController::class, 'destroy']);
+    Route::delete('empleados/{id}', [EmpleadoController::class, 'eliminarEmpleado']);
 
     //familiares
-    Route::get('familiares/cantidad', [FamiliarController::class, 'create']);
-    Route::get('familiares/cantidad/{id}', [FamiliarController::class, 'show']);
-    Route::get('familiares/socio/{id}', [FamiliarController::class, 'edit']);
-    Route::get('familiares/{id}', [FamiliarController::class, 'index']);
-    Route::post('familiares', [FamiliarController::class, 'store']);
+    Route::post('familiares/asociado', [FamiliarController::class, 'crearFamiliaresAsociado']);
+    Route::post('familiares/adherente', [FamiliarController::class, 'crearFamiliaresAdherente']);
     Route::post('familiares/imagen/{id}', [FamiliarController::class, 'changeImagen']);
-    Route::put('familiares/{id}', [FamiliarController::class, 'update']);
-    Route::delete('familiares/{id}', [FamiliarController::class, 'destroy']);
+    Route::get('familiares/cantidad', [FamiliarController::class, 'contFamiliares']);
+    Route::get('familiares/cantidad/{id}/{rol}', [FamiliarController::class, 'contFamiliaresAsociado']);
+    Route::get('familiares/{id}/{rol}', [FamiliarController::class, 'familiaresAsociado']);
+    Route::put('familiares/{id}', [FamiliarController::class, 'actualizarFamiliar']);
+    Route::delete('familiares/{id}', [FamiliarController::class, 'eliminarFamiliar']);
 
     //espacios
-    Route::get('espacios/cantidad', [EspacioController::class, 'create']);
-    Route::get('espacios', [EspacioController::class, 'index']);
-    Route::post('espacios', [EspacioController::class, 'store']);
+    Route::post('espacios', [EspacioController::class, 'crearEspacio']);
     Route::post('espacios/imagen/{id}', [EspacioController::class, 'changeImagen']);
-    Route::put('espacios/{id}', [EspacioController::class, 'update']);
-    Route::delete('espacios/{id}', [EspacioController::class, 'destroy']);
+    Route::get('espacios/cantidad', [EspacioController::class, 'contEspacios']);
+    Route::get('espacios', [EspacioController::class, 'espacios']);
+    Route::put('espacios/{id}', [EspacioController::class, 'actualizarEspacio']);
+    Route::delete('espacios/{id}', [EspacioController::class, 'eliminarEspacio']);
 
     //invitados
-    Route::get('invitados', [InvitadoController::class, 'index']);
-    Route::get('invitados/cantidad', [InvitadoController::class, 'create']);
-    Route::get('invitados/cantidad/{id}', [InvitadoController::class, 'show']);
-    Route::post('invitados', [InvitadoController::class, 'store']);
+    Route::post('invitados', [InvitadoController::class, 'crearInvitacion']);
+    Route::get('invitados', [InvitadoController::class, 'invitados']);
+    Route::get('invitados/cantidad', [InvitadoController::class, 'contInvitadosMes']);
+    Route::get('invitados/cantidad/{id}', [InvitadoController::class, 'contInvitadosUser']);
     Route::put('invitados/{id}', [InvitadoController::class, 'update']);
 
     //estados
-    Route::get('estados', [EstadosController::class, 'index']);
+    Route::get('estados', [EstadosController::class, 'estados']);
 });

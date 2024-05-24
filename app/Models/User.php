@@ -46,12 +46,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function getJWTIdentifier()
     {
-      return $this->getKey();
+        return $this->getKey();
     }
 
     public function getJWTCustomClaims()
     {
-      return [];
+        return [];
     }
 
     public function admin()
@@ -59,17 +59,34 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Admin::class);
     }
 
-    public function personal()
+    public function asociado()
     {
-        return $this->hasOne(Personal::class);
+        return $this->hasOne(Asociado::class);
+    }
+    
+    public function adherente()
+    {
+        return $this->hasOne(Adherente::class);
     }
 
     public function familiar()
     {
         return $this->hasOne(Familiar::class);
     }
+
     public function empleado()
     {
         return $this->hasOne(Empleado::class);
     }
+
+    public function entradas()
+    {
+        return $this->hasMany(Entrada::class);
+    }
+
+    public function estado()
+    {
+        return $this->hasMany(Estados::class);
+    }
+
 }

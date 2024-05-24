@@ -10,9 +10,9 @@ class EstadosController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function estados()
     {
-        $estados = Estados::with('personal')->get();
+        $estados = Estados::with(['user.asociado', 'user.adherente'])->get();
         return response()->json($estados);
     }
 

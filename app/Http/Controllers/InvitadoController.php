@@ -11,16 +11,16 @@ class InvitadoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function invitados()
     {
-        $invitados = Invitado::with('personal')->get();
+        $invitados = Invitado::with(['user.asociado', 'user.adherente'])->get();
         return response()->json($invitados);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function contInvitadosMes()
     {
         $inicioMes = Carbon::now()->startOfMonth();
         $finMes = Carbon::now()->endOfMonth();
@@ -31,7 +31,7 @@ class InvitadoController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function crearInvitacion(Request $request)
     {
         $inicioMes = Carbon::now()->startOfMonth();
         $finMes = Carbon::now()->endOfMonth();
@@ -45,7 +45,15 @@ class InvitadoController extends Controller
                 'message' => 'Este invitado ya ha sido invitado 4 veces este mes.'
             ], 200);
         } else {
-            $invitado =  Invitado::create($request->all());
+            $invitado =  Invitado::create([
+                'user_id' => $request->user_id,
+                "Nombre" => $request->Nombre,
+                "Apellidos" => $request->Apellidos,
+                "TipoDocumento" => $request->TipoDocumento,
+                'Documento' => $request->Documento,
+                "Telefono" => $request->Telefono,
+                'Status' => $request->Status,
+            ]);
             return response()->json([
                 'status' => true,
                 'message' => 'Creado con exito',
@@ -57,9 +65,9 @@ class InvitadoController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(String $id)
+    public function contInvitadosUser(String $id)
     {
-        $familiar = Invitado::where('personal_id', $id)->get()->count();
+        $familiar = Invitado::where('user_id', $id)->get()->count();
         return response()->json($familiar);
     }
 

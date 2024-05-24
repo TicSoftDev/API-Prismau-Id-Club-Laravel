@@ -10,7 +10,7 @@ class Invitado extends Model
     use HasFactory;
 
     protected $fillable = [
-        'personal_id',
+        'user_id',
         'Nombre',
         'Apellidos',
         'Telefono',
@@ -19,8 +19,8 @@ class Invitado extends Model
         'Status',
     ];
 
-    public function personal()
+    public function user()
     {
-        return $this->belongsTo(Personal::class);
+        return $this->belongsTo(User::class);
     }
 }

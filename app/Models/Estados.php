@@ -10,13 +10,13 @@ class Estados extends Model
     use HasFactory;
 
     protected $fillable = [
-        'personal_id',
+        'user_id',
         'Estado',
         'Motivo',
     ];
 
-    public function personal()
+    public function user()
     {
-        return $this->belongsTo(Personal::class);
+        return $this->belongsTo(User::class);
     }
 }
