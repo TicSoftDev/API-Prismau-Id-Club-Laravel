@@ -6,6 +6,7 @@ use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CargoController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
@@ -113,4 +114,9 @@ Route::group([
 
     //estados
     Route::get('estados', [EstadosController::class, 'estados']);
+
+    //entradas
+    Route::get('entradas', [EntradaController::class, 'entradas']);
+    Route::post('entradas/{id}', [EntradaController::class, 'crearEntrada']);
+
 });

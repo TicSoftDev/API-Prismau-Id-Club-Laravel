@@ -10,9 +10,15 @@ class EntradaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function entradas()
     {
-        //
+        $entradas = Entrada::with([
+            'user.asociado',
+            'user.adherente',
+            'user.familiar',
+            'user.empleado'
+        ])->get();
+        return response()->json($entradas, 200);
     }
 
     /**
@@ -26,9 +32,15 @@ class EntradaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function crearEntrada($id)
     {
-        //
+        Entrada::create([
+            "user_id" => $id,
+        ]);
+        return response()->json([
+            "status" => true,
+            'message' => 'Entrada creada',
+        ], 201);
     }
 
     /**
