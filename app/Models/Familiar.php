@@ -22,6 +22,7 @@ class Familiar extends Model
         'TipoDocumento',
         'Documento',
         'Sexo',
+        'Codigo',
         'DireccionResidencia',
         'CiudadResidencia',
         'EstadoCivil',

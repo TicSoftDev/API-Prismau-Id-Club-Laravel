@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('TipoDocumento');
             $table->string('Documento')->unique();
             $table->string('Sexo');
-            $table->string('Codigo')->nullable();
+            $table->string('Codigo')->unique()->nullable();;
             $table->string('DireccionResidencia')->nullable();
             $table->string('CiudadResidencia')->nullable();
             $table->string('TiempoResidencia')->nullable();

@@ -69,6 +69,7 @@ class AdherenteController extends Controller
                 'FechaNacimiento' => $request->FechaNacimiento,
                 'LugarNacimiento' => $request->LugarNacimiento,
                 'Sexo' => $request->Sexo,
+                'Codigo'=> $request->Codigo,
                 'DireccionResidencia' => $request->DireccionResidencia,
                 'CiudadResidencia' => $request->CiudadResidencia,
                 'TiempoResidencia' => $request->TiempoResidencia,
@@ -135,12 +136,13 @@ class AdherenteController extends Controller
      */
     public function actualizarAdherente(Request $request, string $id)
     {
-        $usuario = User::findOrFail($id); 
+        $usuario = User::findOrFail($id);
         $adherente = $usuario->adherente;
         try {
             $request->validate([
                 'Documento' => 'required|string|max:255|unique:users,Documento,' . $usuario->id,
                 'Correo' => 'required|email|max:255|unique:adherentes,Correo,' . $adherente->id,
+                'Codigo' => 'required|unique:adherentes,Codigo,' . $adherente->id,
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -176,6 +178,7 @@ class AdherenteController extends Controller
                 "FechaNacimiento" => $request->FechaNacimiento,
                 "LugarNacimiento" => $request->LugarNacimiento,
                 "Sexo" => $request->Sexo,
+                'Codigo'=> $request->Codigo,
                 "DireccionResidencia" => $request->DireccionResidencia,
                 "CiudadResidencia" => $request->CiudadResidencia,
                 "TiempoResidencia" => $request->TiempoResidencia,
@@ -188,6 +191,11 @@ class AdherenteController extends Controller
                 "DireccionOficina" => $request->DireccionOficina,
                 "CiudadOficina" => $request->CiudadOficina,
             ]);
+            foreach ($adherente->familiares as $familiar) {
+                $familiar->update([
+                    'Codigo' => $request->Codigo
+                ]);
+            }
             DB::commit();
             return response()->json([
                 "status" => true,
@@ -349,4 +357,5 @@ class AdherenteController extends Controller
             ],);
         }
     }
+
 }

@@ -21,6 +21,7 @@ class Asociado extends Model
         'TipoDocumento',
         'Documento',
         'Sexo',
+        'Codigo',
         'DireccionResidencia',
         'CiudadResidencia',
         'TiempoResidencia',

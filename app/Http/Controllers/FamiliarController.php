@@ -67,6 +67,7 @@ class FamiliarController extends Controller
             $familiar->TipoDocumento = $request->TipoDocumento;
             $familiar->Documento = $request->Documento;
             $familiar->Sexo = $request->Sexo;
+            $familiar->Codigo = $request->Codigo;
             $familiar->DireccionResidencia = $request->DireccionResidencia;
             $familiar->CiudadResidencia = $request->CiudadResidencia;
             $familiar->EstadoCivil = $request->EstadoCivil;
@@ -124,6 +125,7 @@ class FamiliarController extends Controller
             $familiar->TipoDocumento = $request->TipoDocumento;
             $familiar->Documento = $request->Documento;
             $familiar->Sexo = $request->Sexo;
+            $familiar->Codigo = $request->Codigo;
             $familiar->DireccionResidencia = $request->DireccionResidencia;
             $familiar->CiudadResidencia = $request->CiudadResidencia;
             $familiar->EstadoCivil = $request->EstadoCivil;
@@ -194,7 +196,7 @@ class FamiliarController extends Controller
             $usuario->update([
                 'Documento' => $request->Documento,
             ]);
-            $res = $usuario->familiar->update([
+            $usuario->familiar->update([
                 "Nombre" => $request->Nombre,
                 "Apellidos" => $request->Apellidos,
                 "Correo" => $request->Correo,
@@ -204,6 +206,7 @@ class FamiliarController extends Controller
                 "TipoDocumento" => $request->TipoDocumento,
                 "Documento" => $request->Documento,
                 "Sexo" => $request->Sexo,
+                'Codigo' => $request->Codigo,
                 "DireccionResidencia" => $request->DireccionResidencia,
                 "CiudadResidencia" => $request->CiudadResidencia,
                 "EstadoCivil" => $request->EstadoCivil,

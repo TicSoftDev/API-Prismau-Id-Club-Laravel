@@ -22,6 +22,7 @@ class Adherente extends Model
         'TipoDocumento',
         'Documento',
         'Sexo',
+        'Codigo',
         'DireccionResidencia',
         'CiudadResidencia',
         'TiempoResidencia',

@@ -61,6 +61,7 @@ class AsociadoController extends Controller
                 'FechaNacimiento' => $request->FechaNacimiento,
                 'LugarNacimiento' => $request->LugarNacimiento,
                 'Sexo' => $request->Sexo,
+                'Codigo' => $request->Codigo,
                 'DireccionResidencia' => $request->DireccionResidencia,
                 'CiudadResidencia' => $request->CiudadResidencia,
                 'TiempoResidencia' => $request->TiempoResidencia,
@@ -133,6 +134,7 @@ class AsociadoController extends Controller
             $request->validate([
                 'Documento' => 'required|string|max:255|unique:users,Documento,' . $usuario->id,
                 'Correo' => 'required|email|max:255|unique:asociados,Correo,' . $asociado->id,
+                'Codigo' => 'required|string|max:255|unique:asociados,Codigo,' . $asociado->id,
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -158,6 +160,7 @@ class AsociadoController extends Controller
                 "FechaNacimiento" => $request->FechaNacimiento,
                 "LugarNacimiento" => $request->LugarNacimiento,
                 "Sexo" => $request->Sexo,
+                'Codigo' => $request->Codigo,
                 "DireccionResidencia" => $request->DireccionResidencia,
                 "CiudadResidencia" => $request->CiudadResidencia,
                 "TiempoResidencia" => $request->TiempoResidencia,
@@ -170,6 +173,9 @@ class AsociadoController extends Controller
                 "DireccionOficina" => $request->DireccionOficina,
                 "CiudadOficina" => $request->CiudadOficina,
             ]);
+            foreach ($asociado->familiares as $familiar) {
+                $familiar->update(['Codigo' => $request->Codigo]);
+            }
             DB::commit();
             return response()->json([
                 "status" => true,
@@ -220,24 +226,20 @@ class AsociadoController extends Controller
             $asociado = Asociado::with('familiares')->findOrFail($id);
             $nuevoEstado = $asociado->Estado == 0 ? 1 : 0;
             $estadoString = $nuevoEstado == 1 ? "Activo" : "Inactivo";
-            $asociado->Estado = $nuevoEstado;
-            $asociado->save();
+            $asociado->update(['Estado' => $nuevoEstado]);
 
             foreach ($asociado->familiares as $familiar) {
-                $familiar->Estado = $nuevoEstado;
-                $familiar->save();
+                $familiar->update(['Estado' => $nuevoEstado]);
             }
 
-            $adherentes = Adherente::with('familiares')->where('asociado_id', $id)->get();
-            foreach ($adherentes as $adherente) {
-                $adherente->Estado = $nuevoEstado;
-                $adherente->save();
-
+            $adherente = Adherente::with('familiares')->where('asociado_id', $id)->first();
+            if ($adherente) {
+                $adherente->update(['Estado' => $nuevoEstado]);
                 foreach ($adherente->familiares as $familiar) {
-                    $familiar->Estado = $nuevoEstado;
-                    $familiar->save();
+                    $familiar->update(['Estado' => $nuevoEstado]);
                 }
             }
+
             Estados::create([
                 'user_id' => $asociado->user_id,
                 'Estado' => $estadoString,
@@ -257,6 +259,7 @@ class AsociadoController extends Controller
             ], 500);
         }
     }
+
 
     public function changeToAdherente(String $id)
     {
@@ -340,5 +343,4 @@ class AsociadoController extends Controller
             ],);
         }
     }
-
 }
