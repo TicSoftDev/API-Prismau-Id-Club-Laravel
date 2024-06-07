@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\EstadosMail;
 use App\Models\Adherente;
 use App\Models\Asociado;
 use App\Models\Estados;
@@ -11,6 +12,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
@@ -245,7 +247,20 @@ class AsociadoController extends Controller
                 'Estado' => $estadoString,
                 'Motivo' => $request->Motivo
             ]);
-
+            $fechaHora = now()->format('d/m/Y H:i:s');
+            $content = <<<HTML
+                        <h1>Club Sincelejo</h1>
+                        <p><strong>Fecha:</strong> {$fechaHora}</p>
+                        <h3>Cordial saludo,</h3>
+                        <p>Estimado(a) socio(a),</p>
+                        <p>Queremos informarle que su estado en el Club Sincelejo ha sido cambiado a <strong>{$estadoString}</strong>.</p>
+                        <p><strong>Motivo:</strong> {$request->Motivo}</p>
+                        <p>En caso de inquietudes, no dude en contactar a la gerencia del club.</p>
+                        <p>Atentamente,<br>
+                        Gerencia<br>
+                        Club Sincelejo</p>
+                        HTML;
+            Mail::to($asociado->Correo)->send(new EstadosMail($content));
             DB::commit();
             return response()->json([
                 "status" => true,
