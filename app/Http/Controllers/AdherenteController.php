@@ -129,7 +129,11 @@ class AdherenteController extends Controller
      */
     public function adherenteConFamiliares(string $id)
     {
-        $adherente = Adherente::with('familiares')->find($id);
+        $adherente = Adherente::with(['familiares' => function ($query) {
+            $query->select('id', 'adherente_id', 'Nombre', 'Apellidos', 'parentesco');
+        }])->select('id', 'imagen', 'Nombre', 'Apellidos', 'TipoDocumento', 'Documento')
+            ->find($id);
+
         return response()->json($adherente);
     }
 

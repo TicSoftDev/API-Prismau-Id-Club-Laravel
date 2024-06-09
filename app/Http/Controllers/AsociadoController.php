@@ -121,9 +121,15 @@ class AsociadoController extends Controller
      */
     public function asociadoConFamiliares(string $id)
     {
-        $asociado = Asociado::with('familiares')->find($id);
+        $asociado = Asociado::with(['familiares' => function ($query) {
+            $query->select('id', 'asociado_id', 'Nombre', 'Apellidos', 'parentesco');
+        }])->select('id', 'imagen', 'Nombre', 'Apellidos', 'TipoDocumento', 'Documento')
+            ->find($id);
+
         return response()->json($asociado);
     }
+
+
 
     /**
      * Update the specified resource in storage.
