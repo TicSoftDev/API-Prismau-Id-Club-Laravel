@@ -45,8 +45,9 @@ Route::group([
     Route::delete('admin/{id}', [AdminsController::class, 'destroy']);
 
     //usuario
-    Route::put('usuario/{id}', [UsuarioController::class, 'cambiarPassword']);
+    Route::get('usuario', [UsuarioController::class, 'filtroUsuarios']);
     Route::get('usuario/{id}', [UsuarioController::class, 'buscarUsuario']);
+    Route::put('usuario/{id}', [UsuarioController::class, 'cambiarPassword']);
 
     //personal
     // Route::post('personal', [PersonalController::class, 'store']);

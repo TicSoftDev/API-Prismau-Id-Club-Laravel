@@ -266,10 +266,10 @@ class AdherenteController extends Controller
                 'Motivo' => $request->Motivo
             ]);
 
-            $fechaHora = now()->format('d/m/Y H:i:s'); 
+            $fecha = now()->format('d/m/Y'); 
             $content = <<<HTML
                         <h1>Club Sincelejo</h1>
-                        <p><strong>Fecha:</strong> {$fechaHora}</p>
+                        <p><strong>Fecha:</strong> {$fecha}</p>
                         <h3>Cordial saludo,</h3>
                         <p>Estimado(a) socio(a),</p>
                         <p>Queremos informarle que su estado en el Club Sincelejo ha sido cambiado a <strong>{$estadoString}</strong>.</p>
@@ -294,7 +294,6 @@ class AdherenteController extends Controller
             ], 500);
         }
     }
-
 
     public function changeToAsociado(String $id)
     {
