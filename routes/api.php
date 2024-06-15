@@ -4,14 +4,13 @@ use App\Http\Controllers\AdherenteController;
 use App\Http\Controllers\AdminsController;
 use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CargoController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
-use App\Http\Controllers\PersonalController;
+use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -119,5 +118,11 @@ Route::group([
     //entradas
     Route::get('entradas', [EntradaController::class, 'entradas']);
     Route::post('entradas/{id}', [EntradaController::class, 'crearEntrada']);
+
+    //noticias
+    Route::post('noticias', [NoticiaController::class, 'crearNoticia']);
+    Route::get('noticias', [NoticiaController::class, 'noticias']);
+    Route::put('noticias/{id}', [NoticiaController::class, 'actualizarNoticia']);
+    Route::delete('noticias/{id}', [NoticiaController::class, 'eliminarNoticia']);
 
 });
