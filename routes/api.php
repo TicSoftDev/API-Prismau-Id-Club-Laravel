@@ -122,6 +122,7 @@ Route::group([
     //noticias
     Route::post('noticias', [NoticiaController::class, 'crearNoticia']);
     Route::get('noticias', [NoticiaController::class, 'noticias']);
+    Route::get('noticias/cantidad', [NoticiaController::class, 'Contnoticias']);
     Route::put('noticias/{id}', [NoticiaController::class, 'actualizarNoticia']);
     Route::delete('noticias/{id}', [NoticiaController::class, 'eliminarNoticia']);
 
