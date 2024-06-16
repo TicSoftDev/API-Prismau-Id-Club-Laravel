@@ -80,7 +80,9 @@ class UsuarioController extends Controller
      */
     public function buscarUsuario(String $documento)
     {
-        $user = User::where('Documento', $documento)->first();
+        $user = User::with([
+            'admin', 'asociado', 'adherente', 'empleado', 'familiar', 'familiar.adherente', 'familiar.asociado'
+        ])->where('Documento', $documento)->first();
         if ($user) {
             if ($user->Rol == 0 || $user->Rol == 1) {
                 $usuario =  $user->admin;
@@ -91,7 +93,11 @@ class UsuarioController extends Controller
             } else if ($user->Rol == 4 || $user->Rol == 6) {
                 $usuario =  $user->empleado;
             } else if ($user->Rol == 5) {
-                $usuario =  $user->familiar;
+                $familiar = $user->familiar;
+                if ($familiar) {
+                    $familiar['relacionado'] = $familiar->adherente ?? $familiar->asociado;
+                    $usuario = $familiar;
+                }
             }
             return response()->json([
                 "status" => true,
