@@ -123,6 +123,15 @@ class AdherenteController extends Controller
             ->sortBy('Nombre');
         return response()->json($adherentes->values()->all());
     }
+    
+    public function adherentesRetirados()
+    {
+        $adherentes = Adherente::withCount('familiares')
+            ->where('Estado', 2)
+            ->get()
+            ->sortBy('Nombre');
+        return response()->json($adherentes->values()->all());
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -266,7 +275,7 @@ class AdherenteController extends Controller
                 'Motivo' => $request->Motivo
             ]);
 
-            $fecha = now()->format('d/m/Y'); 
+            $fecha = now()->format('d/m/Y');
             $content = <<<HTML
                         <h1>Club Sincelejo</h1>
                         <p><strong>Fecha:</strong> {$fecha}</p>
@@ -281,6 +290,62 @@ class AdherenteController extends Controller
                         HTML;
 
             Mail::to($adherente->Correo)->send(new EstadosMail($content));
+            DB::commit();
+            return response()->json([
+                "status" => true,
+                "message" => "Cambio de estado realizado con éxito"
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "status" => false,
+                "message" => "Error en el servidor: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function changeToRetired(String $id, Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $adherente = Adherente::with('familiares')->findOrFail($id);
+            $nuevoEstado = ($adherente->Estado == 0 || $adherente->Estado == 1) ? 2 : 1;
+            if ($nuevoEstado == 1) {
+                $estadoString = "Activo";
+            } else if ($nuevoEstado == 2) {
+                $estadoString = "Retirado";
+            } else {
+                $estadoString = "Inactivo";
+            }
+            $adherente->Estado = $nuevoEstado;
+            $adherente->save();
+
+            foreach ($adherente->familiares as $familiar) {
+                $familiar->Estado = $nuevoEstado;
+                $familiar->save();
+            }
+
+            Estados::create([
+                'user_id' => $adherente->user_id,
+                'Estado' => $estadoString,
+                'Motivo' => $request->Motivo
+            ]);
+
+            // $fecha = now()->format('d/m/Y');
+            // $content = <<<HTML
+            //             <h1>Club Sincelejo</h1>
+            //             <p><strong>Fecha:</strong> {$fecha}</p>
+            //             <h3>Cordial saludo,</h3>
+            //             <p>Estimado(a) socio(a),</p>
+            //             <p>Queremos informarle que su estado en el Club Sincelejo ha sido cambiado a <strong>{$estadoString}</strong>.</p>
+            //             <p><strong>Motivo:</strong> {$request->Motivo}</p>
+            //             <p>En caso de inquietudes, no dude en contactar a la gerencia del club.</p>
+            //             <p>Atentamente,<br>
+            //             Gerencia<br>
+            //             Club Sincelejo</p>
+            //             HTML;
+
+            // Mail::to($adherente->Correo)->send(new EstadosMail($content));
             DB::commit();
             return response()->json([
                 "status" => true,

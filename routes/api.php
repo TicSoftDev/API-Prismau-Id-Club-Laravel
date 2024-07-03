@@ -60,10 +60,12 @@ Route::group([
     Route::post('asociados/imagen/{id}', [AsociadoController::class, 'changeImagen']);
     Route::get('asociados', [AsociadoController::class, 'asociadosActivos']);
     Route::get('asociados/inactivos', [AsociadoController::class, 'asociadosInactivos']);
+    Route::get('asociados/retirados', [AsociadoController::class, 'asociadosRetirados']);
     Route::get('asociados/cantidad', [AsociadoController::class, 'cantidadAsociados']);
     Route::get('asociados/familiares/{id}', [AsociadoController::class, 'asociadoConFamiliares']);
     Route::put('asociados/{id}', [AsociadoController::class, 'actualizarAsociado']);
     Route::put('asociados/status/{id}', [AsociadoController::class, 'changeStatus']);
+    Route::put('asociados/retirar/{id}', [AsociadoController::class, 'changeToRetirado']);
     Route::put('asociados/adherente/{id}', [AsociadoController::class, 'changeToAdherente']);
     Route::delete('asociados/{id}', [AsociadoController::class, 'eliminarAsociado']);
 
@@ -72,10 +74,12 @@ Route::group([
     Route::post('adherentes/imagen/{id}', [AdherenteController::class, 'changeImagen']);
     Route::get('adherentes', [AdherenteController::class, 'adherentesActivos']);
     Route::get('adherentes/inactivos', [AdherenteController::class, 'adherentesInactivos']);
+    Route::get('adherentes/retirados', [AdherenteController::class, 'adherentesRetirados']);
     Route::get('adherentes/cantidad', [AdherenteController::class, 'contAdherentes']);
     Route::get('adherentes/familiares/{id}', [AdherenteController::class, 'adherenteConFamiliares']);
     Route::put('adherentes/{id}', [AdherenteController::class, 'actualizarAdherente']);
     Route::put('adherentes/status/{id}', [AdherenteController::class, 'changeStatus']);
+    Route::put('adherentes/retirar/{id}', [AdherenteController::class, 'changeToRetired']);
     Route::put('adherentes/asociado/{id}', [AdherenteController::class, 'changeToAsociado']);
     Route::delete('adherentes/{id}', [AdherenteController::class, 'eliminarAdherente']);
 

@@ -38,6 +38,8 @@ class UsuarioController extends Controller
                 'apellidos' => $info ? $info->Apellidos : null,
                 'tipoDocumento' => $info ? $info->TipoDocumento : null,
                 'documento' => $info ? $info->Documento : null,
+                'codigo' => $info ? $info->Codigo : null,
+                'estado' => $info ? $info->Estado : null,
                 'rol' => $user->Rol
             ];
         });

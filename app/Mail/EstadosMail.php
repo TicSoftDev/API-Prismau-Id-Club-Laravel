@@ -29,7 +29,7 @@ class EstadosMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Estados Mail',
+            subject: 'Notificaciones Club Sincelejo',
         );
     }
 
@@ -55,8 +55,8 @@ class EstadosMail extends Mailable
 
     public function build()
     {
-        return $this->subject('PrismaU Club')
-            ->from('clubsincelejo.prismau@gmail.com', 'PrismaU Club')
+        return $this->subject('Club Sincelejo')
+            ->from('clubsincelejo.prismau@gmail.com', 'Club Sincelejo')
             ->html($this->content);
     }
 }
