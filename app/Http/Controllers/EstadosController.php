@@ -12,9 +12,12 @@ class EstadosController extends Controller
      */
     public function estados()
     {
-        $estados = Estados::with(['user.asociado', 'user.adherente'])->get();
+        $estados = Estados::with(['user.asociado', 'user.adherente'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json($estados);
     }
+
 
     /**
      * Show the form for creating a new resource.
