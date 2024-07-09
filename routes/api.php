@@ -11,6 +11,7 @@ use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\NoticiaController;
+use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,10 +32,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post("login", [AuthController::class, "login"]);
+Route::post("solicitud", [SolicitudesController::class, "crearSolicitud"]);
 
 Route::group([
     "middleware" => ["auth:api"]
 ], function () {
+
+    //solicitudes
+    Route::get('solicitudes', [SolicitudesController::class, 'solicitudes']);
+    Route::get('solicitudes/cantidad', [SolicitudesController::class, 'contSolicitudes']);
 
     //admin 
     Route::get('admin', [AdminsController::class, 'index']);
