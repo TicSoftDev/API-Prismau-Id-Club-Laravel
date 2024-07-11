@@ -54,25 +54,14 @@ Route::group([
     Route::get('usuario/{id}', [UsuarioController::class, 'buscarUsuario']);
     Route::put('usuario/{id}', [UsuarioController::class, 'cambiarPassword']);
 
-    //personal
-    // Route::post('personal', [PersonalController::class, 'store']);
-    // Route::get('personal/familiares/{id}', [PersonalController::class, 'getPersonalWithFamiliares']);
-    // Route::put('personal/{id}', [PersonalController::class, 'update']);
-    // Route::post('personal/imagen/{id}', [PersonalController::class, 'changeImagen']);
-    // Route::delete('personal/{id}', [PersonalController::class, 'destroy']);
-
     // asociados
     Route::post('asociados', [AsociadoController::class, 'crearAsociado']);
-    Route::post('asociados/imagen/{id}', [AsociadoController::class, 'changeImagen']);
-    Route::get('asociados', [AsociadoController::class, 'asociadosActivos']);
-    Route::get('asociados/inactivos', [AsociadoController::class, 'asociadosInactivos']);
-    Route::get('asociados/retirados', [AsociadoController::class, 'asociadosRetirados']);
+    Route::get('asociados', [AsociadoController::class, 'asociados']);
     Route::get('asociados/cantidad', [AsociadoController::class, 'cantidadAsociados']);
     Route::get('asociados/familiares/{id}', [AsociadoController::class, 'asociadoConFamiliares']);
     Route::put('asociados/{id}', [AsociadoController::class, 'actualizarAsociado']);
     Route::put('asociados/status/{id}', [AsociadoController::class, 'changeStatus']);
-    Route::put('asociados/retirar/{id}', [AsociadoController::class, 'changeToRetirado']);
-    Route::put('asociados/adherente/{id}', [AsociadoController::class, 'changeToAdherente']);
+    Route::post('asociados/imagen/{id}', [AsociadoController::class, 'changeImagen']);
     Route::delete('asociados/{id}', [AsociadoController::class, 'eliminarAsociado']);
 
     // adherentes
@@ -135,5 +124,4 @@ Route::group([
     Route::get('noticias/cantidad', [NoticiaController::class, 'Contnoticias']);
     Route::put('noticias/{id}', [NoticiaController::class, 'actualizarNoticia']);
     Route::delete('noticias/{id}', [NoticiaController::class, 'eliminarNoticia']);
-
 });
