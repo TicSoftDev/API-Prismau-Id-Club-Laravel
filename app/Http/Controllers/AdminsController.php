@@ -11,28 +11,8 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $admins = User::with('admin')->where('Rol', 1)->get();
-        return response()->json($admins);
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $admins = User::with('admin')->where('Rol', 1)->count();
-        return response()->json($admins);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(PersonalRequest $request)
+    public function crearAdmin(PersonalRequest $request)
     {
         DB::beginTransaction();
         try {
@@ -65,28 +45,21 @@ class AdminsController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Admin $admins)
+    public function admins()
     {
-        //
+        $admins = User::with('admin')->where('Rol', 1)->get();
+        return response()->json($admins);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Admin $admins)
+    public function contAdmins()
     {
-        //
+        $admins = User::with('admin')->where('Rol', 1)->count();
+        return response()->json($admins);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function actualizarAdmin(Request $request, string $id)
     {
-        DB::beginTransaction(); 
+        DB::beginTransaction();
         try {
             $usuario = User::findOrFail($id);
             $usuario->admin->update([
@@ -103,17 +76,37 @@ class AdminsController extends Controller
                 "message" => "hecho"
             ], 201);
         } catch (\Exception $e) {
-            DB::rollBack(); 
+            DB::rollBack();
             return response()->json([
                 "message" => "Error al actualizar: " . $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function changeStatus(String $id)
+    {
+        DB::beginTransaction();
+        try {
+            $admin = Admin::findOrFail($id);
+            $nuevoEstado = $admin->Estado == 0 ? 1 : 0;
+            $admin->Estado = $nuevoEstado;
+            $admin->save();
+
+            DB::commit();
+            return response()->json([
+                "status" => true,
+                "message" => "hecho"
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                "status" => false,
+                "message" => "Error en el servidor: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function eliminarAdmin(string $id)
     {
         $user = User::find($id);
         if (is_null($user)) {

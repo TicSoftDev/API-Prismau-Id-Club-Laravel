@@ -43,11 +43,12 @@ Route::group([
     Route::get('solicitudes/cantidad', [SolicitudesController::class, 'contSolicitudes']);
 
     //admin 
-    Route::get('admin', [AdminsController::class, 'index']);
-    Route::get('admin/cantidad', [AdminsController::class, 'create']);
-    Route::post('admin', [AdminsController::class, 'store']);
-    Route::put('admin/{id}', [AdminsController::class, 'update']);
-    Route::delete('admin/{id}', [AdminsController::class, 'destroy']);
+    Route::post('admin', [AdminsController::class, 'crearAdmin']);
+    Route::get('admin', [AdminsController::class, 'admins']);
+    Route::get('admin/cantidad', [AdminsController::class, 'contAdmins']);
+    Route::put('admin/{id}', [AdminsController::class, 'actualizarAdmin']);
+    Route::put('admin/status/{id}', [AdminsController::class, 'changeStatus']);
+    Route::delete('admin/{id}', [AdminsController::class, 'eliminarAdmin']);
 
     //usuario
     Route::get('usuario', [UsuarioController::class, 'filtroUsuarios']);
