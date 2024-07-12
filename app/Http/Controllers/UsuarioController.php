@@ -14,20 +14,7 @@ class UsuarioController extends Controller
 
     public function filtroUsuarios()
     {
-        $users = User::with(['asociado', 'adherente', 'empleado', 'familiar'])
-            ->whereHas('asociado', function ($query) {
-                $query->where('Estado', 1);
-            })
-            ->orWhereHas('adherente', function ($query) {
-                $query->where('Estado', 1);
-            })
-            ->orWhereHas('empleado', function ($query) {
-                $query->where('Estado', 1);
-            })
-            ->orWhereHas('familiar', function ($query) {
-                $query->where('Estado', 1);
-            })
-            ->get();
+        $users = User::with(['asociado', 'adherente', 'empleado', 'familiar'])->get();
 
         $filteredUsers = $users->map(function ($user) {
             $info = $user->asociado ?? $user->adherente ?? $user->empleado ?? $user->familiar;
@@ -43,7 +30,6 @@ class UsuarioController extends Controller
                 'rol' => $user->Rol
             ];
         });
-
         return response()->json($filteredUsers);
     }
 
