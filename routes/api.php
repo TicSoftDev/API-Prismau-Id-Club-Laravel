@@ -70,16 +70,13 @@ Route::group([
 
     // adherentes
     Route::post('adherentes', [AdherenteController::class, 'crearAdherente']);
-    Route::post('adherentes/imagen/{id}', [AdherenteController::class, 'changeImagen']);
-    Route::get('adherentes', [AdherenteController::class, 'adherentesActivos']);
-    Route::get('adherentes/inactivos', [AdherenteController::class, 'adherentesInactivos']);
-    Route::get('adherentes/retirados', [AdherenteController::class, 'adherentesRetirados']);
+    Route::get('adherentes', [AdherenteController::class, 'adherentes']);
     Route::get('adherentes/cantidad', [AdherenteController::class, 'contAdherentes']);
     Route::get('adherentes/familiares/{id}', [AdherenteController::class, 'adherenteConFamiliares']);
     Route::put('adherentes/{id}', [AdherenteController::class, 'actualizarAdherente']);
-    Route::put('adherentes/status/{id}', [AdherenteController::class, 'changeStatus']);
-    Route::put('adherentes/retirar/{id}', [AdherenteController::class, 'changeToRetired']);
     Route::put('adherentes/asociado/{id}', [AdherenteController::class, 'changeToAsociado']);
+    Route::put('adherentes/status/{id}', [AdherenteController::class, 'changeStatus']);
+    Route::post('adherentes/imagen/{id}', [AdherenteController::class, 'changeImagen']);
     Route::delete('adherentes/{id}', [AdherenteController::class, 'eliminarAdherente']);
 
     //empleados

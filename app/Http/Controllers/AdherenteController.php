@@ -19,30 +19,7 @@ use Illuminate\Support\Str;
 
 class AdherenteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function adherentesActivos()
-    {
-        $adherentes = Adherente::withCount('familiares')
-            ->where('Estado', 1)
-            ->get()
-            ->sortBy('Nombre');
-        return response()->json($adherentes->values()->all());
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function contAdherentes()
-    {
-        $adherentes = Adherente::count();
-        return response()->json($adherentes);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function crearAdherente(Request $request)
     {
         DB::beginTransaction();
@@ -112,30 +89,19 @@ class AdherenteController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function adherentesInactivos()
+    public function adherentes()
     {
-        $adherentes = Adherente::withCount('familiares')
-            ->where('Estado', 0)
-            ->get()
-            ->sortBy('Nombre');
-        return response()->json($adherentes->values()->all());
-    }
-    
-    public function adherentesRetirados()
-    {
-        $adherentes = Adherente::withCount('familiares')
-            ->where('Estado', 2)
-            ->get()
+        $adherentes = Adherente::withCount('familiares')->get()
             ->sortBy('Nombre');
         return response()->json($adherentes->values()->all());
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function contAdherentes()
+    {
+        $adherentes = Adherente::count();
+        return response()->json($adherentes);
+    }
+
     public function adherenteConFamiliares(string $id)
     {
         $adherente = Adherente::with(['familiares' => function ($query) {
@@ -146,9 +112,6 @@ class AdherenteController extends Controller
         return response()->json($adherente);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function actualizarAdherente(Request $request, string $id)
     {
         $usuario = User::findOrFail($id);
@@ -224,105 +187,25 @@ class AdherenteController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function eliminarAdherente(string $id)
-    {
-        $user = User::find($id);
-        if (is_null($user)) {
-            return response()->json(["message" => "no encontrado"], 404);
-        }
-        if ($user->adherente->imagen) {
-            Storage::disk('local')->delete(str_replace('/storage', 'public', $user->adherente->imagen));
-        }
-        if ($user->adherente->familiares) {
-            foreach ($user->adherente->familiares as $familiar) {
-                if ($familiar->imagen) {
-                    Storage::disk('local')->delete(str_replace('/storage', 'public', $familiar->imagen));
-                }
-                $usuarioFamiliar = User::find($familiar->user_id);
-                $usuarioFamiliar->delete();
-                $familiar->delete();
-            }
-        }
-        $user->adherente->delete();
-        $user->delete();
-        return response()->json([
-            "status" => true,
-            "message" => "hecho"
-        ], 200);
-    }
-
     public function changeStatus(String $id, Request $request)
     {
         DB::beginTransaction();
         try {
             $adherente = Adherente::with('familiares')->findOrFail($id);
-            $nuevoEstado = $adherente->Estado == 0 ? 1 : 0;
-            $estadoString = $nuevoEstado == 1 ? "Activo" : "Inactivo";
-            $adherente->Estado = $nuevoEstado;
-            $adherente->save();
+            $adherente->update(['Estado' => $request->Estado]);
 
-            foreach ($adherente->familiares as $familiar) {
-                $familiar->Estado = $nuevoEstado;
-                $familiar->save();
-            }
-
-            Estados::create([
-                'user_id' => $adherente->user_id,
-                'Estado' => $estadoString,
-                'Motivo' => $request->Motivo
-            ]);
-
-            $fecha = now()->format('d/m/Y');
-            $content = <<<HTML
-                        <h1>Club Sincelejo</h1>
-                        <p><strong>Fecha:</strong> {$fecha}</p>
-                        <h3>Cordial saludo,</h3>
-                        <p>Estimado(a) socio(a),</p>
-                        <p>Queremos informarle que su estado en el Club Sincelejo ha sido cambiado a <strong>{$estadoString}</strong>.</p>
-                        <p><strong>Motivo:</strong> {$request->Motivo}</p>
-                        <p>En caso de inquietudes, no dude en contactar a la gerencia del club.</p>
-                        <p>Atentamente,<br>
-                        Gerencia<br>
-                        Club Sincelejo</p>
-                        HTML;
-
-            Mail::to($adherente->Correo)->send(new EstadosMail($content));
-            DB::commit();
-            return response()->json([
-                "status" => true,
-                "message" => "Cambio de estado realizado con éxito"
-            ], 201);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                "status" => false,
-                "message" => "Error en el servidor: " . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function changeToRetired(String $id, Request $request)
-    {
-        DB::beginTransaction();
-        try {
-            $adherente = Adherente::with('familiares')->findOrFail($id);
-            $nuevoEstado = ($adherente->Estado == 0 || $adherente->Estado == 1) ? 2 : 1;
-            if ($nuevoEstado == 1) {
+            if ($request->Estado == 0) {
+                $estadoString = "Inactivo";
+            } else if ($request->Estado == 1) {
                 $estadoString = "Activo";
-            } else if ($nuevoEstado == 2) {
+            } else if ($request->Estado == 2) {
                 $estadoString = "Retirado";
             } else {
-                $estadoString = "Inactivo";
+                $estadoString = "Mora";
             }
-            $adherente->Estado = $nuevoEstado;
-            $adherente->save();
 
             foreach ($adherente->familiares as $familiar) {
-                $familiar->Estado = $nuevoEstado;
-                $familiar->save();
+                $familiar->update(['Estado' => $request->Estado]);
             }
 
             Estados::create([
@@ -442,5 +325,32 @@ class AdherenteController extends Controller
                 "message" => "No se pudo agregar"
             ],);
         }
+    }
+
+    public function eliminarAdherente(string $id)
+    {
+        $user = User::find($id);
+        if (is_null($user)) {
+            return response()->json(["message" => "no encontrado"], 404);
+        }
+        if ($user->adherente->imagen) {
+            Storage::disk('local')->delete(str_replace('/storage', 'public', $user->adherente->imagen));
+        }
+        if ($user->adherente->familiares) {
+            foreach ($user->adherente->familiares as $familiar) {
+                if ($familiar->imagen) {
+                    Storage::disk('local')->delete(str_replace('/storage', 'public', $familiar->imagen));
+                }
+                $usuarioFamiliar = User::find($familiar->user_id);
+                $usuarioFamiliar->delete();
+                $familiar->delete();
+            }
+        }
+        $user->adherente->delete();
+        $user->delete();
+        return response()->json([
+            "status" => true,
+            "message" => "hecho"
+        ], 200);
     }
 }
