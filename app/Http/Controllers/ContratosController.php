@@ -13,7 +13,7 @@ class ContratosController extends Controller
         $validatedData = $request->validate([
             'Nombres' => 'required|string|max:255',
             'Apellidos' => 'required|string|max:255',
-            'Identificacion' => 'required|string|unique:solicitudes,Identificacion',
+            'Identificacion' => 'required|string',
             'Correo' => 'required|email|max:255',
             'Telefono' => 'required|string|max:15',
             'Empresa' => 'nullable|string|max:255',
@@ -36,6 +36,7 @@ class ContratosController extends Controller
             ], 500);
         }
     }
+    
     public function contratosApp()
     {
         $contratos = Contratos::all();

@@ -12,6 +12,7 @@ use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\NoticiaController;
+use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -125,4 +126,9 @@ Route::group([
     Route::get('noticias/cantidad', [NoticiaController::class, 'Contnoticias']);
     Route::put('noticias/{id}', [NoticiaController::class, 'actualizarNoticia']);
     Route::delete('noticias/{id}', [NoticiaController::class, 'eliminarNoticia']);
+
+    //solicitudes
+    Route::post('solicitudes', [SolicitudesController::class, 'crearSolicitud']);
+    Route::get('solicitudes', [SolicitudesController::class, 'solicitudes']);
+    Route::get('solicitudes/cantidad', [SolicitudesController::class, 'contSolicitudes']);
 });
