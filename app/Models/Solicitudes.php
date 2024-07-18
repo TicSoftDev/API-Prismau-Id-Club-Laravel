@@ -10,13 +10,9 @@ class Solicitudes extends Model
     use HasFactory;
 
     protected $fillable = [
-        'Nombres',
-        'Apellidos',
-        'Identificacion',
-        'Correo',
-        'Telefono',
-        'Empresa',
-        'Ciudad',
+        'Tipo',
+        'Descripcion',
+        'user_id',
         'Estado',
     ];
 }

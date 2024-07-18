@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('solicitudes', function (Blueprint $table) {
             $table->id();
             $table->string('Tipo');
-            $table->string('Descripcion');
+            $table->text('Descripcion');
             $table->foreignId('user_id')->constrained('users');
             $table->integer('Estado');
             $table->timestamps();

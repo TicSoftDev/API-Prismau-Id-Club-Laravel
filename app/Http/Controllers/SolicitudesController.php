@@ -7,38 +7,14 @@ use Illuminate\Http\Request;
 
 class SolicitudesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function solicitudes()
-    {
-        $solicitudes = Solicitudes::all();
-        return response()->json($solicitudes);
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function contSolicitudes()
-    {
-        $solicitudes = Solicitudes::count();
-        return response()->json($solicitudes);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function crearSolicitud(Request $request)
     {
         $validatedData = $request->validate([
-            'Nombres' => 'required|string|max:255',
-            'Apellidos' => 'required|string|max:255',
-            'Identificacion' => 'required|string|unique:solicitudes,Identificacion',
-            'Correo' => 'required|email|max:255',
-            'Telefono' => 'required|string|max:15',
-            'Empresa' => 'nullable|string|max:255',
-            'Ciudad' => 'required|string|max:255',
-            'Estado' => 'required',
+            'Tipo' => 'required|string',
+            'Descripcion' => 'required|string',
+            'user_id' => 'required|integer|exists:users,id', 
+            'Estado' => 'required'
         ]);
 
         try {
@@ -57,36 +33,15 @@ class SolicitudesController extends Controller
         }
     }
 
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Solicitudes $solicitudes)
+    public function solicitudes()
     {
-        //
+        $solicitudes = Solicitudes::all();
+        return response()->json($solicitudes);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Solicitudes $solicitudes)
+    public function contSolicitudes()
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Solicitudes $solicitudes)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Solicitudes $solicitudes)
-    {
-        //
+        $solicitudes = Solicitudes::count();
+        return response()->json($solicitudes);
     }
 }
