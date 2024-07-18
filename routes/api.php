@@ -4,6 +4,7 @@ use App\Http\Controllers\AdherenteController;
 use App\Http\Controllers\AdminsController;
 use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContratosController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\EspacioController;
@@ -11,7 +12,6 @@ use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\NoticiaController;
-use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -32,7 +32,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post("login", [AuthController::class, "login"]);
-Route::post("solicitud", [SolicitudesController::class, "crearSolicitud"]);
+Route::post("contratos", [ContratosController::class, "crearSolicitudContratoApp"]);
 Route::post('reset-password', [AuthController::class, 'sendResetCode']);
 Route::post('verify-reset-code', [AuthController::class, 'validateResetCode']);
 Route::post('change-password', [AuthController::class, 'resetPassword']);
@@ -41,9 +41,9 @@ Route::group([
     "middleware" => ["auth:api"]
 ], function () {
 
-    //solicitudes
-    Route::get('solicitudes', [SolicitudesController::class, 'solicitudes']);
-    Route::get('solicitudes/cantidad', [SolicitudesController::class, 'contSolicitudes']);
+    //contratos app
+    Route::get('contratos', [ContratosController::class, 'contratosApp']);
+    Route::get('contratos/cantidad', [ContratosController::class, 'contContratosApp']);
 
     //admin 
     Route::post('admin', [AdminsController::class, 'crearAdmin']);

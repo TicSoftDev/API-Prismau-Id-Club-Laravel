@@ -13,13 +13,9 @@ return new class extends Migration
     {
         Schema::create('solicitudes', function (Blueprint $table) {
             $table->id();
-            $table->string('Nombres');
-            $table->string('Apellidos');
-            $table->string('Identificacion');
-            $table->string('Correo');
-            $table->string('Telefono');
-            $table->string('Empresa');
-            $table->string('Ciudad');
+            $table->string('Tipo');
+            $table->string('Descripcion');
+            $table->foreignId('user_id')->constrained('users');
             $table->integer('Estado');
             $table->timestamps();
         });
