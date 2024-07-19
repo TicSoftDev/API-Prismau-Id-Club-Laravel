@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('Tipo');
             $table->text('Descripcion');
             $table->foreignId('user_id')->constrained('users');
+            $table->text('Respuesta')->nullable();
             $table->integer('Estado');
             $table->timestamps();
         });

@@ -14,5 +14,6 @@ class Solicitudes extends Model
         'Descripcion',
         'user_id',
         'Estado',
+        'Respuesta',
     ];
 }
