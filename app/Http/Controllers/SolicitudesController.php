@@ -13,7 +13,7 @@ class SolicitudesController extends Controller
         $validatedData = $request->validate([
             'Tipo' => 'required|string',
             'Descripcion' => 'required|string',
-            'user_id' => 'required|integer|exists:users,id', 
+            'user_id' => 'required|integer|exists:users,id',
             'Estado' => 'required'
         ]);
 
@@ -35,13 +35,25 @@ class SolicitudesController extends Controller
 
     public function solicitudes()
     {
-        $solicitudes = Solicitudes::all();
+        $solicitudes = Solicitudes::orderBy('created_at', 'desc')->get();
+        return response()->json($solicitudes);
+    }
+
+    public function solicitud($id)
+    {
+        $solicitudes = Solicitudes::find($id);
+        return response()->json($solicitudes);
+    }
+
+    public function getSolicitudUser($id)
+    {
+        $solicitudes = Solicitudes::where('user_id', $id)->orderBy('created_at', 'desc')->get();
         return response()->json($solicitudes);
     }
 
     public function contSolicitudes()
     {
-        $solicitudes = Solicitudes::count();
+        $solicitudes = Solicitudes::where('Estado', 1)->count();
         return response()->json($solicitudes);
     }
 }
