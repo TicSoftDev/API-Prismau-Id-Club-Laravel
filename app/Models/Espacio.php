@@ -14,4 +14,14 @@ class Espacio extends Model
         'Descripcion',
         'Estado',
     ];
+
+    public function disponibilidades()
+    {
+        return $this->hasMany(DisponibilidadEspacio::class);
+    }
+
+    public function reservas()
+    {
+        return $this->hasMany(Reservas::class);
+    }
 }
