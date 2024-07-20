@@ -130,7 +130,9 @@ Route::group([
     //solicitudes
     Route::post('solicitudes', [SolicitudesController::class, 'crearSolicitud']);
     Route::get('solicitudes', [SolicitudesController::class, 'solicitudes']);
+    Route::get('solicitudes/pendientes', [SolicitudesController::class, 'contSolicitudesPendientes']);
+    Route::get('solicitudes/cantidad/{id}', [SolicitudesController::class, 'contSolicitudesUser']);
     Route::get('solicitudes/{id}', [SolicitudesController::class, 'solicitud']);
     Route::get('solicitudes/user/{id}', [SolicitudesController::class, 'getSolicitudUser']);
-    Route::get('solicitudes/cantidad', [SolicitudesController::class, 'contSolicitudes']);
+    Route::put('solicitudes/{id}', [SolicitudesController::class, 'responderSolicitud']);
 });

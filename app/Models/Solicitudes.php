@@ -16,4 +16,9 @@ class Solicitudes extends Model
         'Estado',
         'Respuesta',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
