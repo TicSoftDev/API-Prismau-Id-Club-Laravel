@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminsController;
 use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContratosController;
+use App\Http\Controllers\DisponibilidadEspacioController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\EspacioController;
@@ -135,4 +136,11 @@ Route::group([
     Route::get('solicitudes/{id}', [SolicitudesController::class, 'solicitud']);
     Route::get('solicitudes/user/{id}', [SolicitudesController::class, 'getSolicitudUser']);
     Route::put('solicitudes/{id}', [SolicitudesController::class, 'responderSolicitud']);
+
+    //Disponibilidades de Espacios
+    Route::post('disponibilidad-espacio', [DisponibilidadEspacioController::class, 'crearDisponibilidad']);
+    Route::get('disponibilidad-espacio/{id}', [DisponibilidadEspacioController::class, 'getDisponibilidadesEspacio']);
+    Route::put('disponibilidad-espacio/{id}', [DisponibilidadEspacioController::class, 'updateDisponibilidad']);
+    Route::delete('disponibilidad-espacio/{id}', [DisponibilidadEspacioController::class, 'eliminarDisponibilidad']);
+    
 });
