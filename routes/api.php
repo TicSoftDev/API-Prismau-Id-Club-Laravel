@@ -13,6 +13,7 @@ use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\NoticiaController;
+use App\Http\Controllers\ReservasController;
 use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
@@ -142,5 +143,9 @@ Route::group([
     Route::get('disponibilidad-espacio/{id}', [DisponibilidadEspacioController::class, 'getDisponibilidadesEspacio']);
     Route::put('disponibilidad-espacio/{id}', [DisponibilidadEspacioController::class, 'updateDisponibilidad']);
     Route::delete('disponibilidad-espacio/{id}', [DisponibilidadEspacioController::class, 'eliminarDisponibilidad']);
-    
+
+    //Reservaciones
+    Route::post('reservas', [ReservasController::class, 'crearReservacion']);
+    Route::get('reservas/{id}', [ReservasController::class, 'getReservasUser']);
+    Route::delete('reservas/{id}', [ReservasController::class, 'cancelarReserva']);
 });
