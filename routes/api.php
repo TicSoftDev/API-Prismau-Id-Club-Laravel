@@ -146,6 +146,7 @@ Route::group([
 
     //Reservaciones
     Route::post('reservas', [ReservasController::class, 'crearReservacion']);
+    Route::get('reservas/cantidad/{id}', [ReservasController::class, 'contReservasUser']);
     Route::get('reservas/{id}', [ReservasController::class, 'getReservasUser']);
     Route::delete('reservas/{id}', [ReservasController::class, 'cancelarReserva']);
 });

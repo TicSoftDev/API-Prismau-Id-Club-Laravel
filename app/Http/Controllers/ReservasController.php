@@ -6,19 +6,35 @@ use App\Models\DisponibilidadEspacio;
 use App\Models\Reservas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ReservasController extends Controller
 {
 
     public function crearReservacion(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'espacio_id' => 'required|exists:espacios,id',
-            'Fecha' => 'required|date',
-            'Inicio' => 'required|date_format:H:i',
-            'Fin' => 'required|date_format:H:i|after:hora_inicio',
-        ]);
+        try {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'espacio_id' => 'required|exists:espacios,id',
+                'Fecha' => 'required|date',
+                'Inicio' => 'required|date_format:H:i',
+                'Fin' => 'required|date_format:H:i|after:Inicio',
+            ]);
+            log(strtotime($request->Fin) <= strtotime($request->Inicio));
+            if (strtotime($request->Fin) <= strtotime($request->Inicio)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'La hora de fin debe ser mayor que la hora de inicio.',
+                ], 200);
+            }
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Datos',
+                'errors' => $e->errors(),
+            ], 200);
+        }
 
         $espacioId = $validated['espacio_id'];
         $fecha = $validated['Fecha'];
@@ -46,8 +62,8 @@ class ReservasController extends Controller
         if (!$disponibilidad) {
             return response()->json([
                 'status' => false,
-                'error' => 'No Disponible'
-            ], 422);
+                'message' => 'No Disponible'
+            ], 200);
         }
 
         $conflictos = Reservas::where('espacio_id', $espacioId)
@@ -65,8 +81,8 @@ class ReservasController extends Controller
         if ($conflictos) {
             return response()->json([
                 'status' => false,
-                'error' => 'Reservado'
-            ], 422);
+                'message' => 'Reservado'
+            ], 200);
         }
 
         $reserva = Reservas::create($validated);
@@ -83,6 +99,12 @@ class ReservasController extends Controller
             ->where('user_id', $id)
             ->orderBy('fecha', 'desc')
             ->get();
+        return response()->json($reservas);
+    }
+
+    public function contReservasUser($id)
+    {
+        $reservas = Reservas::where('user_id', $id)->get()->count();
         return response()->json($reservas);
     }
 
