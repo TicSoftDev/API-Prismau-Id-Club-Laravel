@@ -93,6 +93,14 @@ class ReservasController extends Controller
         ], 201);
     }
 
+    public function reservas()
+    {
+        $reservas = Reservas::with(['user.asociado', 'user.adherente', 'espacio'])
+            ->orderBy('Fecha', 'desc')
+            ->get();
+        return response()->json($reservas);
+    }
+
     public function getReservasUser($id)
     {
         $reservas = Reservas::with('espacio')
