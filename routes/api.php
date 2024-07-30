@@ -7,13 +7,17 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContratosController;
 use App\Http\Controllers\DisponibilidadEspacioController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\EncuestasController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\NoticiaController;
+use App\Http\Controllers\PreguntasController;
 use App\Http\Controllers\ReservasController;
+use App\Http\Controllers\RespuestasController;
+use App\Http\Controllers\RespuestasUsuarioController;
 use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
@@ -150,4 +154,29 @@ Route::group([
     Route::get('reservas/cantidad/{id}', [ReservasController::class, 'contReservasUser']);
     Route::get('reservas/{id}', [ReservasController::class, 'getReservasUser']);
     Route::delete('reservas/{id}', [ReservasController::class, 'cancelarReserva']);
+
+    //Encuestas
+    Route::post('encuestas', [EncuestasController::class, 'crearEncuesta']);
+    Route::get('encuestas', [EncuestasController::class, 'encuestas']);
+    Route::get('encuestas/cantidad', [EncuestasController::class, 'contEncuestas']);
+    Route::get('encuestas/disponibles/{id}', [EncuestasController::class, 'encuestasDisponibles']);
+    Route::get('encuestas/{id}', [EncuestasController::class, 'getEncuesta']);
+    Route::put('encuestas/{id}', [EncuestasController::class, 'actualizarEncuesta']);
+    Route::delete('encuestas/{id}', [EncuestasController::class, 'borrarEncuesta']);
+
+    //Preguntas
+    Route::post('preguntas', [PreguntasController::class, 'crearPregunta']);
+    Route::get('preguntas/encuesta/{id}', [PreguntasController::class, 'preguntas']);
+    Route::get('preguntas/cantidad/{id}', [PreguntasController::class, 'contPreguntas']);
+    Route::get('preguntas/{id}', [PreguntasController::class, 'getPregunta']);
+    Route::put('preguntas/{id}', [PreguntasController::class, 'actualizarPregunta']);
+    Route::delete('preguntas/{id}', [PreguntasController::class, 'borrarPregunta']);
+
+    //Respuestas
+    Route::post('respuestas', [RespuestasController::class, 'crearRespuesta']);
+    Route::get('respuestas/{id}', [RespuestasController::class, 'respuestas']);
+    Route::put('respuestas/{id}', [RespuestasController::class, 'actualizarRespuesta']);
+    Route::delete('respuestas/{id}', [RespuestasController::class, 'borrarRespuesta']);
+
+    Route::post('/respuestas-usuarios', [RespuestasUsuarioController::class, 'guardarRespuestasUsuarios']);
 });
