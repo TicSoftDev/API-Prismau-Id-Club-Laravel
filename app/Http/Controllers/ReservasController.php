@@ -101,6 +101,12 @@ class ReservasController extends Controller
         return response()->json($reservas);
     }
 
+    public function contReservas()
+    {
+        $reservas = Reservas::get()->count();
+        return response()->json($reservas);
+    }
+
     public function getReservasUser($id)
     {
         $reservas = Reservas::with('espacio')
