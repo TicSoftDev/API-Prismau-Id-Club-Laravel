@@ -160,6 +160,7 @@ Route::group([
     Route::get('encuestas', [EncuestasController::class, 'encuestas']);
     Route::get('encuestas/cantidad', [EncuestasController::class, 'contEncuestas']);
     Route::get('encuestas/disponibles/{id}', [EncuestasController::class, 'encuestasDisponibles']);
+    Route::get('encuestas/respuestas/{id}', [EncuestasController::class, 'getEncuestaConRespuestas']);
     Route::get('encuestas/{id}', [EncuestasController::class, 'getEncuesta']);
     Route::put('encuestas/{id}', [EncuestasController::class, 'actualizarEncuesta']);
     Route::delete('encuestas/{id}', [EncuestasController::class, 'borrarEncuesta']);

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Adherente;
+use App\Models\Asociado;
 use App\Models\Encuestas;
 use App\Models\Preguntas;
 use App\Models\RespuestasUsuario;
@@ -38,8 +40,43 @@ class EncuestasController extends Controller
 
     public function encuestas()
     {
-        $encuestas = Encuestas::withCount('preguntas')->get();
+        $encuestas = Encuestas::withCount('preguntas')->orderBy('created_at', 'desc')->get();
         return response()->json($encuestas);
+    }
+
+    public function getEncuestaConRespuestas($id)
+    {
+        $encuesta = Encuestas::findOrFail($id);
+        $preguntas = Preguntas::where('encuesta_id', $id)->get();
+        $respuestasUsuarios = RespuestasUsuario::whereIn('pregunta_id', $preguntas->pluck('id'))
+            ->orderBy('created_at', 'asc')
+            ->get();
+        $usuariosRespuestas = $respuestasUsuarios->groupBy('user_id');
+        $response = $usuariosRespuestas->map(function ($respuestas, $userId) {
+            $user = User::find($userId);
+            $userInfo = null;
+            if ($user->Rol == 2) {
+                $userInfo = Asociado::where('user_id', $userId)
+                    ->select('id', 'Nombre', 'Apellidos', 'Imagen', 'user_id')
+                    ->first();
+            } elseif ($user->Rol == 3) {
+                $userInfo = Adherente::where('user_id', $userId)
+                    ->select('id', 'Nombre', 'Apellidos', 'Imagen', 'user_id')
+                    ->first();
+            }
+            $fechaRespuesta = $respuestas->first()->created_at->toDateTimeString();
+            return [
+                'user_info' => $userInfo,
+                'fecha_respuesta' => $fechaRespuesta,
+                'respuestas' => $respuestas->map(function ($respuesta) {
+                    return [
+                        'pregunta' => $respuesta->pregunta->Pregunta,
+                        'respuesta' => $respuesta->respuesta->Respuesta,
+                    ];
+                })
+            ];
+        })->values();
+        return response()->json($response);
     }
 
     public function encuestasDisponibles($id)
