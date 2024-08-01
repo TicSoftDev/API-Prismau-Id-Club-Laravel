@@ -14,7 +14,9 @@ class NoticiaController extends Controller
      */
     public function noticias()
     {
-        $noticias = Noticia::all();
+        $noticias = Noticia::where('Vencimiento', '>', now())
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json($noticias);
     }
 
