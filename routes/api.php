@@ -13,6 +13,8 @@ use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\MenuRoleController;
 use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\PreguntasController;
 use App\Http\Controllers\ReservasController;
@@ -181,4 +183,14 @@ Route::group([
     Route::delete('respuestas/{id}', [RespuestasController::class, 'borrarRespuesta']);
 
     Route::post('/respuestas-usuarios', [RespuestasUsuarioController::class, 'guardarRespuestasUsuarios']);
+
+    //Menu
+    Route::post('menus', [MenuController::class, 'crearMenu']);
+    Route::get('menus', [MenuController::class, 'menus']);
+    Route::put('menus/{id}', [MenuController::class, 'actualizarMenu']);
+    Route::delete('menus/{id}', [MenuController::class, 'eliminarMenu']);
+
+    Route::post('menus/rol', [MenuRoleController::class, 'asignarMenuRol']);
+    Route::get('menus/rol/{id}', [MenuRoleController::class, 'menusRole']);
+    Route::delete('menus/rol/{menuId}/{rolId}', [MenuRoleController::class, 'eliminarMenuDeRol']);
 });
