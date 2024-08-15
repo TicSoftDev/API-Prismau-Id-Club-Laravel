@@ -17,6 +17,10 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'Name' => 'required|string',
+                'Type' => 'required|string',
+                'Icon' => 'required|string',
+                'Route' => 'required|string',
+                'Color' => 'required|string',
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -65,6 +69,10 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'Name' => 'required|string',
+                'Type' => 'required|string',
+                'Icon' => 'required|string',
+                'Route' => 'required|string',
+                'Color' => 'required|string',
             ]);
         } catch (ValidationException $e) {
             return response()->json([

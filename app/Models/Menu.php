@@ -9,7 +9,7 @@ class Menu extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['Name', 'Estado'];
+    protected $fillable = ['Name', 'Type', 'Route', 'Icon', 'Color', 'Estado'];
 
     public function roles()
     {

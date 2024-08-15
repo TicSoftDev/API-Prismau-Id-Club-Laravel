@@ -14,6 +14,10 @@ return new class extends Migration
         Schema::create('menus', function (Blueprint $table) {
             $table->id();
             $table->string('Name')->unique();
+            $table->string('Type');
+            $table->string('Route');
+            $table->string('Icon')->nullable();
+            $table->string('Color')->nullable();
             $table->string('Estado')->default(1);
             $table->timestamps();
         });
