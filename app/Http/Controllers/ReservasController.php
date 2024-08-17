@@ -109,8 +109,10 @@ class ReservasController extends Controller
 
     public function getReservasUser($id)
     {
+        $fechaActual = Carbon::now();
         $reservas = Reservas::with('espacio')
             ->where('user_id', $id)
+            ->where('Fecha', '>=', $fechaActual)
             ->orderBy('fecha', 'desc')
             ->get();
         return response()->json($reservas);
@@ -118,7 +120,9 @@ class ReservasController extends Controller
 
     public function contReservasUser($id)
     {
-        $reservas = Reservas::where('user_id', $id)->get()->count();
+        $fechaActual = Carbon::now();
+        $reservas = Reservas::where('user_id', $id)->where('Fecha', '>=', $fechaActual)
+            ->count();
         return response()->json($reservas);
     }
 

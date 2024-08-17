@@ -67,8 +67,12 @@ class InvitadoController extends Controller
      */
     public function contInvitadosUser(String $id)
     {
-        $familiar = Invitado::where('user_id', $id)->get()->count();
-        return response()->json($familiar);
+        $inicioMes = Carbon::now()->startOfMonth();
+        $finMes = Carbon::now()->endOfMonth();
+        $contador = Invitado::where('user_id', $id)
+            ->whereBetween('created_at', [$inicioMes, $finMes])
+            ->count();
+        return response()->json($contador);
     }
 
     /**

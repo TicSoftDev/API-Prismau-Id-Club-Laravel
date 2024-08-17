@@ -38,6 +38,20 @@ class MenuRoleController extends Controller
         $menus = $role->menus;
         return response()->json($menus);
     }
+    
+    public function menusRolePortal($id)
+    {
+        $rol = Rol::findOrFail($id);
+        $menus = $rol->menus()->where('type', 'portal')->get();
+        return response()->json($menus);
+    }
+
+    public function menusRoleBienestar($id)
+    {
+        $rol = Rol::findOrFail($id);
+        $menus = $rol->menus()->where('type', 'bienestar')->get();
+        return response()->json($menus);
+    }
 
     public function eliminarMenuDeRol($menuId, $rolId)
     {

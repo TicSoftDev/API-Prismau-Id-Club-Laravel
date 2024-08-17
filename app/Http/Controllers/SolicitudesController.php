@@ -49,7 +49,7 @@ class SolicitudesController extends Controller
 
     public function getSolicitudUser($id)
     {
-        $solicitudes = Solicitudes::where('user_id', $id)->orderBy('created_at', 'desc')->get();
+        $solicitudes = Solicitudes::where('user_id', $id)->orderBy('Estado', 'desc')->get();
         return response()->json($solicitudes);
     }
 
