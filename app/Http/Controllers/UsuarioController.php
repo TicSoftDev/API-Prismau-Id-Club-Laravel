@@ -42,6 +42,7 @@ class UsuarioController extends Controller
             'familiar.asociado'
         ])->where('Documento', $documento)->first();
         if ($user) {
+            $usuario = null;
             if ($user->Rol == 0 || $user->Rol == 1) {
                 $usuario =  $user->admin;
             } else if ($user->Rol == 2) {
@@ -56,6 +57,11 @@ class UsuarioController extends Controller
                 $familiar = $user->familiar;
                 if ($familiar) {
                     $familiar['relacionado'] = $familiar->adherente ?? $familiar->asociado;
+                    if ($familiar->adherente) {
+                        $familiar->familiares = $familiar->adherente->familiares;
+                    } elseif ($familiar->asociado) {
+                        $familiar->familiares = $familiar->asociado->familiares;
+                    }
                     $usuario = $familiar;
                 }
             }
