@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\EstadosMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class UsuarioController extends Controller
 {
@@ -86,5 +88,28 @@ class UsuarioController extends Controller
         return response()->json([
             "message" => "hecho"
         ], 201);
+    }
+
+    public function eliminarCuenta(String $id)
+    {
+        $user = User::find($id);
+        if ($user->Rol == 2) {
+            $email = $user->asociado->Correo;
+        } else if ($user->Rol == 3) {
+            $email = $user->adherente->Correo;
+        }
+        $fecha = now()->format('d/m/Y');
+        $content = <<<HTML
+                        <h1>Club Sincelejo</h1>
+                        <p><strong>Fecha:</strong> {$fecha}</p>
+                        <h3>Cordial saludo,</h3>
+                        <p>Queremos informarle que hemos recibido su solicitud para eliminación de cuenta en los proximos dias estaremos comunicandonos nuevamente con usted.</p>
+                        <p>Gracias.</p>
+                        HTML;
+        Mail::to($email)->send(new EstadosMail($content));
+        return response()->json([
+            "status" => true,
+            "message" => "hecho"
+        ]);
     }
 }

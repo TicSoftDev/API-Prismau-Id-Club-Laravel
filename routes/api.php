@@ -66,6 +66,7 @@ Route::group([
     Route::get('usuario', [UsuarioController::class, 'filtroUsuarios']);
     Route::get('usuario/{id}', [UsuarioController::class, 'buscarUsuario']);
     Route::put('usuario/{id}', [UsuarioController::class, 'cambiarPassword']);
+    Route::delete('usuario/{id}', [UsuarioController::class, 'eliminarCuenta']);
 
     // asociados
     Route::post('asociados', [AsociadoController::class, 'crearAsociado']);
