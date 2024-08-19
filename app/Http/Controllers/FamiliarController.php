@@ -73,7 +73,7 @@ class FamiliarController extends Controller
             $familiar->EstadoCivil = $request->EstadoCivil;
             $familiar->Cargo = $request->Cargo;
             $familiar->Parentesco = $request->Parentesco;
-            $familiar->Estado = 1;
+            $familiar->Estado = $request->Estado;
             $familiar->save();
 
             DB::commit();
@@ -131,7 +131,7 @@ class FamiliarController extends Controller
             $familiar->EstadoCivil = $request->EstadoCivil;
             $familiar->Cargo = $request->Cargo;
             $familiar->Parentesco = $request->Parentesco;
-            $familiar->Estado = 1;
+            $familiar->Estado = $request->Estado;
             $familiar->save();
 
             DB::commit();

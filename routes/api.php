@@ -195,5 +195,6 @@ Route::group([
     Route::get('menus/rol/{id}', [MenuRoleController::class, 'menusRole']);
     Route::get('menus/rol/{id}/portal', [MenuRoleController::class, 'menusRolePortal']);
     Route::get('menus/rol/{id}/bienestar', [MenuRoleController::class, 'menusRoleBienestar']);
+    Route::get('menus/rol/{id}/perfil', [MenuRoleController::class, 'menusRolePerfil']);
     Route::delete('menus/rol/{menuId}/{rolId}', [MenuRoleController::class, 'eliminarMenuDeRol']);
 });
