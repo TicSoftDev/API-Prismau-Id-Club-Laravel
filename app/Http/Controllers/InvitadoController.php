@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invitado;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -39,13 +40,47 @@ class InvitadoController extends Controller
         $cantidadInvitacionesMes = Invitado::where('Documento', $request->Documento)
             ->whereBetween('created_at', [$inicioMes, $finMes])
             ->count();
-        if ($cantidadInvitacionesMes >= 4) {
+
+        if ($cantidadInvitacionesMes >= 2) {
             return response()->json([
                 'status' => false,
-                'message' => 'Este invitado ya ha sido invitado 4 veces este mes.'
+                'message' => 'Este invitado ya ha sido invitado 2 veces este mes.'
             ], 200);
         } else {
-            $invitado =  Invitado::create([
+            $user = User::with(['asociado', 'adherente'])->find($request->user_id);
+
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Usuario no encontrado.'
+                ], 404);
+            }
+
+            $usuarioInfo = null;
+            if ($user->Rol == 2) {
+                $usuarioInfo = $user->asociado ? [
+                    'Nombre' => $user->asociado->Nombre,
+                    'Apellidos' => $user->asociado->Apellidos,
+                    'TipoDocumento' => $user->asociado->TipoDocumento,
+                    'Documento' => $user->asociado->Documento,
+                ] : null;
+            } elseif ($user->Rol == 3) {
+                $usuarioInfo = $user->adherente ? [
+                    'Nombre' => $user->adherente->Nombre,
+                    'Apellidos' => $user->adherente->Apellidos,
+                    'TipoDocumento' => $user->adherente->TipoDocumento,
+                    'Documento' => $user->adherente->Documento,
+                ] : null;
+            }
+
+            if (!$usuarioInfo) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No se encontró información del adherente o asociado.'
+                ], 404);
+            }
+
+            $invitado = Invitado::create([
                 'user_id' => $request->user_id,
                 "Nombre" => $request->Nombre,
                 "Apellidos" => $request->Apellidos,
@@ -54,13 +89,17 @@ class InvitadoController extends Controller
                 "Telefono" => $request->Telefono,
                 'Status' => $request->Status,
             ]);
+
+            $invitado->usuario_info = $usuarioInfo;
+
             return response()->json([
                 'status' => true,
-                'message' => 'Creado con exito',
-                'data' => $invitado
+                'message' => 'Creado con éxito',
+                'data' => $invitado, 
             ], 201);
         }
     }
+
 
     /**
      * Display the specified resource.
