@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminsController;
 use App\Http\Controllers\AsociadoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContratosController;
+use App\Http\Controllers\CuotasBaileController;
 use App\Http\Controllers\DisponibilidadEspacioController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EncuestasController;
@@ -13,15 +14,21 @@ use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\EstadosController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
+use App\Http\Controllers\MensualidadesController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MenuRoleController;
 use App\Http\Controllers\NoticiaController;
+use App\Http\Controllers\PagosController;
+use App\Http\Controllers\PagosCuotasBaileController;
 use App\Http\Controllers\PreguntasController;
 use App\Http\Controllers\ReservasController;
 use App\Http\Controllers\RespuestasController;
 use App\Http\Controllers\RespuestasUsuarioController;
+use App\Http\Controllers\RubrosController;
 use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\UsuarioController;
+use App\Models\CuotasBaile;
+use App\Models\Pagos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +52,9 @@ Route::post("contratos", [ContratosController::class, "crearSolicitudContratoApp
 Route::post('reset-password', [AuthController::class, 'sendResetCode']);
 Route::post('verify-reset-code', [AuthController::class, 'validateResetCode']);
 Route::post('change-password', [AuthController::class, 'resetPassword']);
+Route::post('preferencia-mensualidad', [MensualidadesController::class, 'crearPreferencia']);
+Route::post('preferencia-cuota-baile', [CuotasBaileController::class, 'crearPreferencia']);
+Route::post('webhook', [PagosController::class, 'handleWebhook']);
 
 Route::group([
     "middleware" => ["auth:api"]
@@ -197,4 +207,25 @@ Route::group([
     Route::get('menus/rol/{id}/bienestar', [MenuRoleController::class, 'menusRoleBienestar']);
     Route::get('menus/rol/{id}/perfil', [MenuRoleController::class, 'menusRolePerfil']);
     Route::delete('menus/rol/{menuId}/{rolId}', [MenuRoleController::class, 'eliminarMenuDeRol']);
+
+    //Rubros
+    Route::post('rubros', [RubrosController::class, 'crearRubro']);
+    Route::get('rubros', [RubrosController::class, 'rubros']);
+    Route::put('rubros/{id}', [RubrosController::class, 'actualizarRubro']);
+    Route::delete('rubros/{id}', [RubrosController::class, 'borrarRubro']);
+
+    //Pagos Mensualidad
+    Route::post('pagos/facturas', [PagosController::class, 'generarFacturas']);
+    Route::get('pagos', [PagosController::class, 'getPagos']);
+
+    //Mensualidades
+    Route::post('mensualidades', [MensualidadesController::class, 'pagarMensualidad']);
+    Route::get('mensualidades/{documento}', [MensualidadesController::class, 'consultarMensualidadesUser']);
+
+    //Cuotas Baile
+    Route::post('cuotas-baile', [CuotasBaileController::class, 'pagarCuota']);
+    Route::get('cuotas-baile/{documento}', [CuotasBaileController::class, 'consultarCuotasBaileUser']);
+
+    //Pagos Cuota Baile
+    Route::get('pagos-cuotas-baile', [PagosCuotasBaileController::class, 'getPagos']);
 });

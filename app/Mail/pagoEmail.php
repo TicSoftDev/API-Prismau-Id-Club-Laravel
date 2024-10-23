@@ -8,22 +8,23 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
-class EstadosMail extends Mailable
+class pagoEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $estadoString;
-    public $motivo;
+    public $estado;
+    public $periodo;
+    public $monto;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($estadoString, $motivo)
+    public function __construct($estado, $periodo, $monto)
     {
-        $this->estadoString = $estadoString;
-        $this->motivo = $motivo;
+        $this->estado = $estado;
+        $this->periodo = $periodo;
+        $this->monto = $monto;
     }
 
     /**
@@ -42,11 +43,12 @@ class EstadosMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'estadosEmail',
+            view: 'pagosEmail',
             with: [
                 'fecha' => now()->format('d/m/Y'),
-                'estado' => $this->estadoString,
-                'motivo' => $this->motivo
+                'estado' => $this->estado,
+                'periodo' => $this->periodo,
+                'monto' => $this->monto
             ],
         );
     }
@@ -65,11 +67,12 @@ class EstadosMail extends Mailable
     {
         return $this->subject('Notificación de Estado')
             ->from('clubsincelejo.prismau@gmail.com', 'Club Sincelejo')
-            ->view('estadosEmail')
+            ->view('pagosEmail')
             ->with([
                 'fecha' => now()->format('d/m/Y'),
-                'estado' => $this->estadoString,
-                'motivo' => $this->motivo,
+                'estado' => $this->estado,
+                'periodo' => $this->periodo,
+                'monto' => $this->monto
             ]);
     }
 }

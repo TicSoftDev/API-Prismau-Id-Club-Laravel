@@ -63,7 +63,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(Asociado::class);
     }
-    
+
     public function adherente()
     {
         return $this->hasOne(Adherente::class);
@@ -88,10 +88,24 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Estados::class);
     }
-    
+
     public function solicitudes()
     {
         return $this->hasMany(Solicitudes::class);
     }
 
+    public function mensualidades()
+    {
+        return $this->hasMany(Mensualidades::class);
+    }
+
+    public function cuotas()
+    {
+        return $this->hasMany(CuotasBaile::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

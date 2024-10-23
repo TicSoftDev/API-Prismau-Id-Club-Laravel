@@ -214,21 +214,7 @@ class AdherenteController extends Controller
                 'Motivo' => $request->Motivo
             ]);
 
-            $fecha = now()->format('d/m/Y');
-            $content = <<<HTML
-                        <h1>Club Sincelejo</h1>
-                        <p><strong>Fecha:</strong> {$fecha}</p>
-                        <h3>Cordial saludo,</h3>
-                        <p>Estimado(a) socio(a),</p>
-                        <p>Queremos informarle que su estado en el Club Sincelejo ha sido cambiado a <strong>{$estadoString}</strong>.</p>
-                        <p><strong>Motivo:</strong> {$request->Motivo}</p>
-                        <p>En caso de inquietudes, no dude en contactar a la gerencia del club.</p>
-                        <p>Atentamente,<br>
-                        Gerencia<br>
-                        Club Sincelejo</p>
-                        HTML;
-
-            Mail::to($adherente->Correo)->send(new EstadosMail($content));
+            Mail::to($adherente->Correo)->send(new EstadosMail($estadoString, $request->Motivo));
             DB::commit();
             return response()->json([
                 "status" => true,

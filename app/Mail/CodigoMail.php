@@ -8,22 +8,19 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
-class EstadosMail extends Mailable
+class CodigoMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $estadoString;
-    public $motivo;
+    public $code;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($estadoString, $motivo)
+    public function __construct($codigo)
     {
-        $this->estadoString = $estadoString;
-        $this->motivo = $motivo;
+        $this->code = $codigo;
     }
 
     /**
@@ -42,11 +39,10 @@ class EstadosMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'estadosEmail',
+            view: 'codeEmail',
             with: [
                 'fecha' => now()->format('d/m/Y'),
-                'estado' => $this->estadoString,
-                'motivo' => $this->motivo
+                'codigo' => $this->code,
             ],
         );
     }
@@ -68,8 +64,7 @@ class EstadosMail extends Mailable
             ->view('estadosEmail')
             ->with([
                 'fecha' => now()->format('d/m/Y'),
-                'estado' => $this->estadoString,
-                'motivo' => $this->motivo,
+                'codigo' => $this->code,
             ]);
     }
 }

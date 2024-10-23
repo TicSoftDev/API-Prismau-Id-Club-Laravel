@@ -106,7 +106,7 @@ class UsuarioController extends Controller
                         <p>Queremos informarle que hemos recibido su solicitud para eliminación de cuenta en los proximos dias estaremos comunicandonos nuevamente con usted.</p>
                         <p>Gracias.</p>
                         HTML;
-        Mail::to($email)->send(new EstadosMail($content));
+        Mail::to($email)->send(new EstadosMail($content, null));
         return response()->json([
             "status" => true,
             "message" => "hecho"

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CodigoMail;
 use App\Mail\EstadosMail;
 use App\Models\Adherente;
 use App\Models\Asociado;
@@ -95,22 +96,7 @@ class AuthController extends Controller
             ['token' => $resetToken, 'created_at' => Carbon::now()]
         );
 
-        $fecha = now()->format('d/m/Y');
-        $content =
-            <<<HTML
-            <h1>Club Sincelejo</h1>
-            <p><strong>Fecha:</strong> {$fecha}</p>
-            <h3>Cordial saludo,</h3>
-            <p>Queremos informarle que hemos recibido una solicitud para recuperar tu contraseña.</p>
-            <p>Por favor, utiliza el siguiente código para restablecer tu contraseña:</p>
-            <p><strong>Código de recuperación:</strong> {$resetToken}</p>
-            <p>Si no solicitaste esto, por favor ignora este correo y tu contraseña permanecerá sin cambios.</p>
-            <p>En caso de inquietudes, no dudes en contactar a la gerencia del club.</p>
-            <p>Atentamente,<br>
-            Gerencia<br>
-            Club Sincelejo</p>
-            HTML;
-        Mail::to($usuario->Correo)->send(new EstadosMail($content));
+        Mail::to($usuario->Correo)->send(new CodigoMail($resetToken));
 
         return response()->json([
             'status' => true,
