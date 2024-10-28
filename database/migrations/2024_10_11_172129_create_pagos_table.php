@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('tarjeta')->nullable();
             $table->string('referencia_pago');
             $table->timestamp('fecha_pago');
+            $table->string('soporte')->nullable();
             $table->timestamps();
         });
     }

@@ -5,13 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\CuotasBaile;
 use App\Models\PagosCuotasBaile;
 use App\Models\User;
+use App\services\CuotasBaileService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\MercadoPagoConfig;
+use Illuminate\Support\Str;
 
 class CuotasBaileController extends Controller
 {
+
+    public $cuotasService;
+
+    public function __construct(CuotasBaileService $cuotasService)
+    {
+        $this->cuotasService = $cuotasService;
+    }
 
     public function getFactura($id)
     {
@@ -39,32 +48,28 @@ class CuotasBaileController extends Controller
                 "pending" => "http://localhost:5173/pagos-cuotas-baile",
             ],
             "auto_return" => "approved",
-            "notification_url" => "https://5523-181-78-12-205.ngrok-free.app/api/webhook",
+            "notification_url" => "https://8873-181-78-12-205.ngrok-free.app/api/webhook",
         ]);
 
         return response()->json($preference->id);
     }
 
-    private function generateUniquePaymentReference()
-    {
-        do {
-            $referencia_pago = rand(10000000, 99999999);
-        } while (PagosCuotasBaile::where('referencia_pago', $referencia_pago)->exists());
-
-        return $referencia_pago;
-    }
-
     public function pagarCuota(Request $request)
     {
         $factura = $this->getFactura($request->cuotas_baile_id);
-        // $factura->update(['estado' => true]);
-        $referencia_pago = $this->generateUniquePaymentReference();
+        if ($request->hasFile('soporte')) {
+            $imagen = $request->file('soporte');
+            $nameImage = Str::slug($factura->año) . '_' . time() . '.' . $imagen->getClientOriginalExtension();
+            $imagen = $imagen->storeAs('public/soportes', $nameImage);
+            $url = Storage::url($imagen);
+        }
         PagosCuotasBaile::create([
             "cuotas_baile_id" => $factura->id,
             "monto" => $request->valor,
-            "referencia_pago" => $referencia_pago,
+            "referencia_pago" => $request->referencia_pago,
             "fecha_pago" => now(),
             "metodo_pago" => $request->metodo_pago,
+            "soporte" => $url
         ]);
         return response()->json([
             'status' => true,
@@ -83,11 +88,16 @@ class CuotasBaileController extends Controller
         if ($user) {
             foreach ($user->cuotas as $cuota) {
                 if ($cuota->total_pagos >= $cuota->valor) {
-                    $cuota->estado = true;
+                    $cuota->estado = 1;
                     $cuota->save();
                 }
             }
         }
         return response()->json($user);
+    }
+
+    public function cambiarValorCuotasBaileUser(Request $request)
+    {
+        return $this->cuotasService->actualizarValorCuotasBaileSocio($request->documento, $request->valor);
     }
 }

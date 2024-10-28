@@ -4,12 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Mail\EstadosMail;
 use App\Models\User;
+use App\services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class UsuarioController extends Controller
 {
+
+    protected $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
+    public function consultarSociosConValores()
+    {
+        return $this->userService->getSociosConPrecios();
+    }
 
     public function filtroUsuarios()
     {

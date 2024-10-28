@@ -134,44 +134,74 @@ class PagosController extends Controller
         if (isset($data['type']) && $data['type'] == 'payment') {
             $paymentId = $data['data']['id'];
             $respuesta =  Http::get("https://api.mercadopago.com/v1/payments/$paymentId?access_token=" . $this->accessToken)->json();
+
             if ($respuesta) {
                 $external_reference = $respuesta['external_reference'];
+
                 if ($data['action'] == 'payment.created') {
                     $pago = Pagos::where('referencia_pago', $paymentId)->first();
+
                     if (!$pago && $respuesta['status'] == 'approved') {
+                        $monto_pagado = $respuesta['transaction_amount'];
                         $factura = Mensualidades::where('id', $external_reference)->first();
-                        if ($factura) {
-                            $factura->update(['estado' => true]);
-                            $deuda = $this->mensualidadService->getCantidadDeudas($factura->user_id);
-                            if ($deuda < 3) {
-                                $this->userService->cambiarEstado($factura->user_id, 1);
-                            } else if ($deuda < 6) {
-                                $this->userService->cambiarEstado($factura->user_id, 0);
-                            } else if ($deuda < 11) {
-                                $this->userService->cambiarEstado($factura->user_id, 3);
-                            } else {
-                                $this->userService->cambiarEstado($factura->user_id, 4);
+                        try {
+                            $deudas_pendientes = $this->mensualidadService->getDeudasPendientes($factura->user_id);
+
+                            foreach ($deudas_pendientes as $mensualidad) {
+                                $totalPagos = $mensualidad->total_pagos;
+                                $monto_restante = $mensualidad->valor - $totalPagos;
+
+                                if ($monto_pagado >= $monto_restante) {
+                                    if ($monto_restante > 0) {
+                                        Pagos::create([
+                                            'mensualidad_id' => $mensualidad->id,
+                                            'email' => $respuesta['payer']['email'] ?? null,
+                                            'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
+                                            'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
+                                            'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
+                                            'referencia_pago' => $paymentId,
+                                            'monto' => $monto_restante,
+                                            'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
+                                            'fecha_pago' => $respuesta['date_created'] ?? now(),
+                                        ]);
+                                    }
+                                    $mensualidad->update(['estado' => true]);
+                                    $this->userService->confirmarPago($factura->user_id, $mensualidad->id, "Aprobado");
+                                    $monto_pagado -= $monto_restante;
+                                } else {
+                                    if ($monto_pagado > 0) {
+                                        Pagos::create([
+                                            'mensualidad_id' => $mensualidad->id,
+                                            'email' => $respuesta['payer']['email'] ?? null,
+                                            'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
+                                            'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
+                                            'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
+                                            'referencia_pago' => $paymentId,
+                                            'monto' => $monto_pagado,
+                                            'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
+                                            'fecha_pago' => $respuesta['date_created'] ?? now(),
+                                        ]);
+                                    }
+                                    $monto_pagado = 0;
+                                    break;
+                                }
                             }
-                            try {
-                                Pagos::create([
-                                    'mensualidad_id' => $external_reference,
-                                    'email' => $respuesta['payer']['email'] ?? null,
-                                    'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
-                                    'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
-                                    'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
-                                    'referencia_pago' => $paymentId,
-                                    'monto' => $respuesta['transaction_amount'] ?? 0,
-                                    'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
-                                    'fecha_pago' => $respuesta['date_created'] ?? null,
-                                ]);
-                                $this->userService->confirmarPago($factura->user_id, $external_reference, $respuesta['status']);
-                            } catch (\Exception $e) {
-                                return response()->json([
-                                    'status' => false,
-                                    'error' => 'Error creando el pago: ' . $e->getMessage()
-                                ], 500);
-                            }
+                        } catch (\Exception $e) {
+                            return response()->json([
+                                'status' => false,
+                                'error' => 'Error creando el pago: ' . $e->getMessage()
+                            ], 500);
                         }
+                        // $deuda = $this->mensualidadService->getCantidadDeudas($factura->user_id);
+                        // if ($deuda < 3) {
+                        //     $this->userService->cambiarEstado($factura->user_id, 1);
+                        // } else if ($deuda < 6) {
+                        //     $this->userService->cambiarEstado($factura->user_id, 0);
+                        // } else if ($deuda < 11) {
+                        //     $this->userService->cambiarEstado($factura->user_id, 3);
+                        // } else {
+                        //     $this->userService->cambiarEstado($factura->user_id, 4);
+                        // }
                     }
                 }
             } else {

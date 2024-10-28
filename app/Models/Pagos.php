@@ -19,6 +19,7 @@ class Pagos extends Model
         'monto',
         'tarjeta',
         'fecha_pago',
+        'soporte',
     ];
 
     public function mensualidad()

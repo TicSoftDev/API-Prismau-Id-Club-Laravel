@@ -11,6 +11,35 @@ use Illuminate\Support\Facades\Mail;
 class UserService
 {
 
+    public function getSociosConPrecios()
+    {
+        $socios = User::with(['asociado', 'adherente', 'mensualidades', 'cuotas'])
+            ->whereIn('Rol', [2, 3])->get();
+
+        $filteredUsers = $socios->map(function ($user) {
+            $info = $user->asociado ?? $user->adherente;
+
+            $ultimaMensualidad = $user->mensualidades->last();
+            $ultimaCuotaBaile = $user->cuotas->last();
+
+            return [
+                'id' => $user->id,
+                'imagen' => $info->imagen ?? null,
+                'nombre' => $info ? $info->Nombre : null,
+                'apellidos' => $info ? $info->Apellidos : null,
+                'tipoDocumento' => $info ? $info->TipoDocumento : null,
+                'documento' => $info ? $info->Documento : null,
+                'codigo' => $info ? $info->Codigo : null,
+                'estado' => $info ? $info->Estado : null,
+                'rol' => $user->Rol,
+                'mensualidad' => $ultimaMensualidad ? $ultimaMensualidad->valor : null,
+                'cuota_baile' => $ultimaCuotaBaile ? $ultimaCuotaBaile->valor : null
+            ];
+        });
+
+        return $filteredUsers;
+    }
+
     public function cambiarEstado($id, $estado)
     {
         $user = User::where('id', $id)->with(['asociado', 'adherente'])->first();

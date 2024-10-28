@@ -19,6 +19,7 @@ class PagosCuotasBaile extends Model
         'monto',
         'tarjeta',
         'fecha_pago',
+        'soporte',
     ];
 
     public function cuota()

@@ -16,13 +16,25 @@ class Mensualidades extends Model
         'estado',
     ];
 
+    protected $appends = ['total_pagos', 'restante'];
+
     public function pago()
     {
-        return $this->hasOne(Pagos::class, 'mensualidad_id');
+        return $this->hasMany(Pagos::class, 'mensualidad_id');
     }
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getTotalPagosAttribute()
+    {
+        return $this->pago->sum('monto');
+    }
+
+    public function getRestanteAttribute()
+    {
+        return $this->valor - $this->total_pagos;
     }
 }

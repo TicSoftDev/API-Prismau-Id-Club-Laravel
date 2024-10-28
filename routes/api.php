@@ -73,10 +73,11 @@ Route::group([
     Route::delete('admin/{id}', [AdminsController::class, 'eliminarAdmin']);
 
     //usuario
-    Route::get('usuario', [UsuarioController::class, 'filtroUsuarios']);
+    Route::get('usuario/socios', [UsuarioController::class, 'consultarSociosConValores']);
     Route::get('usuario/{id}', [UsuarioController::class, 'buscarUsuario']);
     Route::put('usuario/{id}', [UsuarioController::class, 'cambiarPassword']);
     Route::delete('usuario/{id}', [UsuarioController::class, 'eliminarCuenta']);
+    Route::get('usuario', [UsuarioController::class, 'filtroUsuarios']);
 
     // asociados
     Route::post('asociados', [AsociadoController::class, 'crearAsociado']);
@@ -221,10 +222,12 @@ Route::group([
     //Mensualidades
     Route::post('mensualidades', [MensualidadesController::class, 'pagarMensualidad']);
     Route::get('mensualidades/{documento}', [MensualidadesController::class, 'consultarMensualidadesUser']);
+    Route::put('mensualidades/valor', [MensualidadesController::class, 'cambiarValorMensualidadUser']);
 
     //Cuotas Baile
     Route::post('cuotas-baile', [CuotasBaileController::class, 'pagarCuota']);
     Route::get('cuotas-baile/{documento}', [CuotasBaileController::class, 'consultarCuotasBaileUser']);
+    Route::put('cuotas-baile/valor', [CuotasBaileController::class, 'cambiarValorCuotasBaileUser']);
 
     //Pagos Cuota Baile
     Route::get('pagos-cuotas-baile', [PagosCuotasBaileController::class, 'getPagos']);
