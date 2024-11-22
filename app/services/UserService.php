@@ -6,6 +6,7 @@ use App\Mail\pagoEmail;
 use App\Models\Mensualidades;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class UserService
@@ -59,5 +60,16 @@ class UserService
         if ($user) {
             Mail::to($socio->Correo)->send(new pagoEmail($estado, $periodo, $mensualidad->valor));
         }
+    }
+
+    public function resetPassword($id)
+    {
+        $user = User::where('id', $id)->first();
+        $user->password = Hash::make($user->Documento);
+        $user->save();
+        return response()->json([
+            "status" => true,
+            "message" => "hecho"
+        ]);
     }
 }

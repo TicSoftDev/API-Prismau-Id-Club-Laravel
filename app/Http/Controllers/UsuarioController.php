@@ -103,6 +103,10 @@ class UsuarioController extends Controller
         ], 201);
     }
 
+    public function resetearPassword(String $id){
+        return $this->userService->resetPassword($id);
+    }
+
     public function eliminarCuenta(String $id)
     {
         $user = User::find($id);
