@@ -51,12 +51,12 @@ class MensualidadesController extends Controller
                 ]
             ],
             "back_urls" => [
-                "success" => "http://localhost:5173/pagos-mensualidades",
-                "failure" => "http://localhost:5173/pagos-mensualidades",
-                "pending" => "http://localhost:5173/pagos-mensualidades",
+                "success" => "https://www.clubsincelejo.prismau.co/pagos-mensualidades",
+                "failure" => "https://www.clubsincelejo.prismau.co/pagos-mensualidades",
+                "pending" => "https://www.clubsincelejo.prismau.co/pagos-mensualidades",
             ],
             "auto_return" => "approved",
-            "notification_url" => "https://8873-181-78-12-205.ngrok-free.app/api/webhook",
+            "notification_url" => "https://www.apiclubsincelejo.prismau.co/api/webhook",
         ]);
 
         return response()->json($preference->id);

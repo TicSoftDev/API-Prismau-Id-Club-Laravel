@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('cuotas_bailes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->date('año');
+            $table->year('año');
             $table->decimal('valor', 10, 2);
             $table->boolean('estado')->default(false);
             $table->timestamps();

@@ -43,12 +43,12 @@ class CuotasBaileController extends Controller
                 ]
             ],
             "back_urls" => [
-                "success" => "http://localhost:5173/pagos-cuotas-baile",
-                "failure" => "http://localhost:5173/pagos-cuotas-baile",
-                "pending" => "http://localhost:5173/pagos-cuotas-baile",
+                "success" => "https://www.clubsincelejo.prismau.co/pagos-cuotas-baile",
+                "failure" => "https://www.clubsincelejo.prismau.co/pagos-cuotas-baile",
+                "pending" => "https://www.clubsincelejo.prismau.co/pagos-cuotas-baile",
             ],
             "auto_return" => "approved",
-            "notification_url" => "https://8873-181-78-12-205.ngrok-free.app/api/webhook",
+            "notification_url" => "https://www.apiclubsincelejo.prismau.co/api/webhook",
         ]);
 
         return response()->json($preference->id);
