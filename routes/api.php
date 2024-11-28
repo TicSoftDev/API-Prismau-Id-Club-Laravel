@@ -130,6 +130,7 @@ Route::group([
     //invitados
     Route::post('invitados', [InvitadoController::class, 'crearInvitacion']);
     Route::get('invitados', [InvitadoController::class, 'invitados']);
+    Route::get('invitados/entradas', [InvitadoController::class, 'entradasInvitados']);
     Route::get('invitados/cantidad', [InvitadoController::class, 'contInvitadosMes']);
     Route::get('invitados/cantidad/{id}', [InvitadoController::class, 'contInvitadosUser']);
     Route::put('invitados/{id}', [InvitadoController::class, 'update']);

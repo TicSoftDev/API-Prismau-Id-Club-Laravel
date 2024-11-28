@@ -200,8 +200,10 @@ class AdherenteController extends Controller
                 $estadoString = "Activo";
             } else if ($request->Estado == 2) {
                 $estadoString = "Retirado";
-            } else {
+            } else if ($request->Estado == 3) {
                 $estadoString = "Mora";
+            } else {
+                $estadoString = "Retirado en mora";
             }
 
             foreach ($adherente->familiares as $familiar) {
