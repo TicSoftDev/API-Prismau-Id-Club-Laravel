@@ -3,50 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contratos;
+use App\services\ContratosService;
 use Illuminate\Http\Request;
 
 class ContratosController extends Controller
 {
 
+    protected $contratosService;
+
+    public function __construct(ContratosService $contratosService)
+    {
+        $this->contratosService = $contratosService;
+    }
+
     public function crearSolicitudContratoApp(Request $request)
     {
-        $validatedData = $request->validate([
-            'Nombres' => 'required|string|max:255',
-            'Apellidos' => 'required|string|max:255',
-            'Identificacion' => 'required|string',
-            'Correo' => 'required|email|max:255',
-            'Telefono' => 'required|string|max:15',
-            'Empresa' => 'nullable|string|max:255',
-            'Ciudad' => 'required|string|max:255',
-            'Estado' => 'required',
-        ]);
-
-        try {
-            $solicitud = Contratos::create($validatedData);
-            return response()->json([
-                "status" => true,
-                "message" => "hecho",
-                'solicitud' => $solicitud
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => false,
-                'message' => 'Error al crear la solicitud',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return $this->contratosService->crearSolicitudContratoApp($request);
     }
-    
+
     public function contratosApp()
     {
-        $contratos = Contratos::all();
-        return response()->json($contratos);
+        return $this->contratosService->contratosApp();
     }
 
     public function contContratosApp()
     {
-        $contratos = Contratos::count();
-        return response()->json($contratos);
+        return $this->contratosService->contContratosApp();
     }
-    
 }
