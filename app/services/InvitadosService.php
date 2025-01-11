@@ -15,14 +15,14 @@ class InvitadosService
         if ($cantidad >= 2) {
             return response()->json([
                 'status' => false,
-                'message' => 'Este invitado ya ha sido invitado 2 veces este mes.'
+                'message' => 'Supero el limite de invitaciones'
             ], 200);
         }
         $estadoSocio = $this->verificarEstadoUsuario($request->Documento);
         if ($estadoSocio == "false") {
             return response()->json([
                 'status' => false,
-                'message' => 'No se puede invitar a un socio que esta en mora.'
+                'message' => 'No se puede invitar a un socio moroso.'
             ]);
         }
         $user = $this->obtenerUsuario($request->user_id);
@@ -109,6 +109,29 @@ class InvitadosService
 
     public function getEntradas()
     {
-        return Invitado::where('Status', 1)->get();
+        $entradas = Invitado::with([
+            'user.asociado' => function ($query) {
+                $query->select('id', 'Nombre', 'Apellidos', 'user_id');
+            },
+            'user.adherente' => function ($query) {
+                $query->select('id', 'Nombre', 'Apellidos', 'user_id');
+            }
+        ])->where('Status', 1)->orderBy('created_at', 'desc')->get();
+
+        $entradasConNombre = $entradas->map(function ($entrada) {
+            $socio = $entrada->user->asociado ?? $entrada->user->adherente;
+
+            return [
+                'id' => $entrada->id,
+                'Nombre' => $entrada->Nombre,
+                'Apellidos' => $entrada->Apellidos,
+                'TipoDocumento' => $entrada->TipoDocumento,
+                'Documento' => $entrada->Documento,
+                'NombreSocio' => $socio->Nombre,
+                'ApellidosSocio' => $socio->Apellidos,
+                'fecha' => $entrada->created_at
+            ];
+        });
+        return response()->json($entradasConNombre);
     }
 }

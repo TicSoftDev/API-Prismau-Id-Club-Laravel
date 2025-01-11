@@ -42,5 +42,16 @@ class PersonalRequest extends FormRequest
                 Rule::unique('empleados', 'Documento')->ignore($usuarioId, 'user_id'),
             ],
         ];
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => true,
+        ], 200);
     }
 }
