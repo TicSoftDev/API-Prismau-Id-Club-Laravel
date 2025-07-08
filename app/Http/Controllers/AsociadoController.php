@@ -13,14 +13,62 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
 class AsociadoController extends Controller
 {
 
+    public function validarAsociado($request, $userId = null, $asociadoId = null)
+    {
+        $rules = [
+            'Nombre' => 'required',
+            'Apellidos' => 'required',
+            'TipoDocumento' => 'required',
+            'Documento' => 'required|unique:users,Documento' . ($userId ? ',' . $userId : ''),
+            'Codigo' => 'required|unique:asociados,Codigo' . ($asociadoId ? ',' . $asociadoId : ''),
+            'Correo' => 'required|email|unique:asociados,Correo' . ($asociadoId ? ',' . $asociadoId : ''),
+            'Telefono' => 'required',
+            'Sexo' => 'required',
+        ];
+
+        if (!$userId) {
+            $rules['Rol'] = 'required';
+        }
+
+        $messages = [
+            'Nombre.required' => 'El Nombre es obligatorio.',
+            'Apellidos.required' => 'Los Apellidos son obligatorio.',
+            'TipoDocumento.required' => 'El Tipo Documento es obligatorio.',
+            'Documento.required' => 'El Documento es obligatorio.',
+            'Documento.unique' => 'El Documento ya está registrado en el sistema.',
+            'Correo.required' => 'El Correo es obligatorio.',
+            'Correo.email' => 'El Correo no tiene un formato válido.',
+            'Correo.unique' => 'El Correo ya está registrado en el sistema.',
+            'Codigo.required' => 'El Codigo es obligatorio.',
+            'Codigo.unique' => 'El Codigo ya está registrado en el sistema.',
+            'Telefono.required' => 'El Telefono es obligatorio.',
+            'Sexo.required' => 'El Sexo es obligatorio.',
+            'Rol.required' => 'El Rol es obligatorio.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return [
+                'status' => false,
+                'errors' => $validator->errors()->all()
+            ];
+        }
+
+        return ['status' => true];
+    }
+
     public function crearAsociado(Request $request)
     {
+        $validator = $this->validarAsociado($request);
+        if (!$validator['status']) return $validator;
         DB::beginTransaction();
         try {
             $user = User::create([
@@ -57,33 +105,20 @@ class AsociadoController extends Controller
             DB::commit();
             return response()->json([
                 "status" => true,
-                "message" => "hecho"
+                "message" => "Asociado creado con exito",
+                "data" => $asociado
             ], 201);
-        } catch (QueryException $e) {
-            DB::rollBack();
-            $errorCode = $e->errorInfo[1];
-            if ($errorCode == 1062) {
-                return response()->json([
-                    "status" => false,
-                    "message" => "Existe"
-                ], 200);
-            }
-            return response()->json([
-                "status" => false,
-                "message" => "No se pudo agregar, error: " . $e->getMessage()
-            ], 500);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                "message" => "Error en el servidor: " . $e->getMessage()
+                "message" => "Error al crear: " . $e->getMessage()
             ], 500);
         }
     }
 
     public function asociados()
     {
-        $asociados = Asociado::withCount('familiares')->get()
-            ->sortBy('Nombre');
+        $asociados = Asociado::withCount('familiares')->orderBy('Nombre')->get();
         return response()->json($asociados->values()->all());
     }
 
@@ -105,27 +140,19 @@ class AsociadoController extends Controller
 
     public function actualizarAsociado(Request $request, string $id)
     {
-        $usuario = User::findOrFail($id);
-        $asociado = $usuario->asociado;
-        try {
-            $request->validate([
-                'Documento' => 'required|string|max:255|unique:users,Documento,' . $usuario->id,
-                'Correo' => 'required|email|max:255|unique:asociados,Correo,' . $asociado->id,
-                'Codigo' => 'required|string|max:255|unique:asociados,Codigo,' . $asociado->id,
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Existe',
-                'errors' => $e->errors(),
-            ], 200);
-        }
+        $asociado = Asociado::findOrFail($id);
+        $userId = $asociado->user_id;
+        $asociadoId = $asociado->id;
+
+        $validator = $this->validarAsociado($request, $userId, $asociadoId);
+        if (!$validator['status']) return $validator;
+
         DB::beginTransaction();
         try {
+            $usuario = User::findOrFail($userId);
+            $asociado = $usuario->asociado;
             if ($usuario->Documento != $request->Documento) {
-                $usuario->update([
-                    'Documento' => $request->Documento,
-                ]);
+                $usuario->update(['Documento' => $request->Documento,]);
             }
             $asociado->update([
                 "Nombre" => $request->Nombre,
@@ -150,13 +177,15 @@ class AsociadoController extends Controller
                 "DireccionOficina" => $request->DireccionOficina,
                 "CiudadOficina" => $request->CiudadOficina,
             ]);
-            foreach ($asociado->familiares as $familiar) {
-                $familiar->update(['Codigo' => $request->Codigo]);
+            if ($asociado->Codigo != $request->Codigo) {
+                foreach ($asociado->familiares as $familiar) {
+                    $familiar->update(['Codigo' => $request->Codigo]);
+                }
             }
             DB::commit();
             return response()->json([
                 "status" => true,
-                "message" => "hecho"
+                "message" => "Asociado actualizado con exito",
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();

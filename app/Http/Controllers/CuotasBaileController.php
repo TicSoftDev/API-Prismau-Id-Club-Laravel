@@ -31,7 +31,9 @@ class CuotasBaileController extends Controller
     {
         MercadoPagoConfig::setAccessToken(config('mercadopago.access_token'));
         $factura = $this->getFactura($request->id);
+
         $cliente = new PreferenceClient();
+
         $preference = $cliente->create([
             "external_reference" => (string) $factura->id,
             "items" => [
@@ -39,19 +41,22 @@ class CuotasBaileController extends Controller
                     "title" => "Cuota Baile " . $factura->id,
                     "quantity" => 1,
                     "unit_price" => (float) $request->valor,
-                    "description" => "Cuota",
+                    "description" => "Cuota"
                 ]
+            ],
+            "metadata" => [
+                "tipo_pago" => "Cuota"
             ],
             "back_urls" => [
                 "success" => "https://www.clubsincelejo.prismau.co/pagos-cuotas-baile",
                 "failure" => "https://www.clubsincelejo.prismau.co/pagos-cuotas-baile",
-                "pending" => "https://www.clubsincelejo.prismau.co/pagos-cuotas-baile",
+                "pending" => "https://www.clubsincelejo.prismau.co/pagos-cuotas-baile"
             ],
             "auto_return" => "approved",
-            "notification_url" => "https://www.apiclubsincelejo.prismau.co/api/webhook",
+            "notification_url" => "https://apiclubsincelejo.prismau.co/api/webhook"
         ]);
 
-        return response()->json($preference->id);
+        return response()->json(['preference_id' => $preference->id]);
     }
 
     public function pagarCuota(Request $request)

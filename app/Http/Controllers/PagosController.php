@@ -107,161 +107,149 @@ class PagosController extends Controller
     public function handleWebhook(Request $request)
     {
         $data = $request->all();
-        if (isset($data['type']) && $data['type'] == 'payment') {
-            $paymentId = $data['data']['id'];
-            $respuesta =  Http::get("https://api.mercadopago.com/v1/payments/$paymentId?access_token=" . $this->accessToken)->json();
-        }
-        if (isset($respuesta['additional_info']['items'][0]['description'])) {
-            $paymentType = $respuesta['additional_info']['items'][0]['description'];
 
-            switch (true) {
-                case strpos($paymentType, 'Mensualidad') !== false:
-                    return $this->webhookMensualidades($request);
-                case strpos($paymentType, 'Cuota') !== false:
-                    return $this->webhookCuotasBaile($request);
-                default:
-                    return response()->json(['status' => false, 'message' => 'Tipo de pago no reconocido'], 400);
+        if (($data['type'] ?? '') === 'payment') {
+            $paymentId = $data['data']['id'] ?? null;
+
+            if (!$paymentId) {
+                return response()->json(['status' => false, 'message' => 'ID de pago faltante'], 400);
             }
-        } else {
-            return response()->json(['status' => false, 'message' => 'Descripción de pago no disponible'], 400);
+
+            $respuesta = Http::get("https://api.mercadopago.com/v1/payments/$paymentId?access_token=" . $this->accessToken)->json();
+
+            $tipo = $respuesta['metadata']['tipo_pago'] ?? null;
+            if (!$tipo && isset($respuesta['additional_info']['items'][0]['description'])) {
+                $tipo = $respuesta['additional_info']['items'][0]['description'];
+            }
+
+            if ($tipo) {
+                if (str_contains($tipo, 'Mensualidad')) {
+                    return $this->webhookMensualidades($paymentId);
+                } elseif (str_contains($tipo, 'Cuota')) {
+                    return $this->webhookCuotasBaile($paymentId);
+                }
+            }
+
+            return response()->json(['status' => false, 'message' => 'Tipo de pago no reconocido'], 400);
         }
-        return response()->json(['status' => false, 'message' => 'Tipo de evento no reconocido'], 400);
+
+        return response()->json(['status' => false, 'message' => 'Evento no válido'], 400);
     }
 
-    public function webhookMensualidades(Request $request)
+    public function webhookMensualidades($paymentId)
     {
-        $data = $request->all();
-        if (isset($data['type']) && $data['type'] == 'payment') {
-            $paymentId = $data['data']['id'];
-            $respuesta =  Http::get("https://api.mercadopago.com/v1/payments/$paymentId?access_token=" . $this->accessToken)->json();
+        $respuesta = Http::get("https://api.mercadopago.com/v1/payments/$paymentId?access_token=" . $this->accessToken)->json();
 
-            if ($respuesta) {
-                $external_reference = $respuesta['external_reference'];
-
-                if ($data['action'] == 'payment.created') {
-                    $pago = Pagos::where('referencia_pago', $paymentId)->first();
-
-                    if (!$pago && $respuesta['status'] == 'approved') {
-                        $monto_pagado = $respuesta['transaction_amount'];
-                        $factura = Mensualidades::where('id', $external_reference)->first();
-                        try {
-                            $deudas_pendientes = $this->mensualidadService->getDeudasPendientes($factura->user_id);
-
-                            foreach ($deudas_pendientes as $mensualidad) {
-                                $totalPagos = $mensualidad->total_pagos;
-                                $monto_restante = $mensualidad->valor - $totalPagos;
-
-                                if ($monto_pagado >= $monto_restante) {
-                                    if ($monto_restante > 0) {
-                                        Pagos::create([
-                                            'mensualidad_id' => $mensualidad->id,
-                                            'email' => $respuesta['payer']['email'] ?? null,
-                                            'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
-                                            'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
-                                            'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
-                                            'referencia_pago' => $paymentId,
-                                            'monto' => $monto_restante,
-                                            'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
-                                            'fecha_pago' => $respuesta['date_created'] ?? now(),
-                                        ]);
-                                    }
-                                    $mensualidad->update(['estado' => true]);
-                                    $this->userService->confirmarPago($factura->user_id, $mensualidad->id, "Aprobado");
-                                    $monto_pagado -= $monto_restante;
-                                } else {
-                                    if ($monto_pagado > 0) {
-                                        Pagos::create([
-                                            'mensualidad_id' => $mensualidad->id,
-                                            'email' => $respuesta['payer']['email'] ?? null,
-                                            'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
-                                            'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
-                                            'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
-                                            'referencia_pago' => $paymentId,
-                                            'monto' => $monto_pagado,
-                                            'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
-                                            'fecha_pago' => $respuesta['date_created'] ?? now(),
-                                        ]);
-                                    }
-                                    $monto_pagado = 0;
-                                    break;
-                                }
-                            }
-                        } catch (\Exception $e) {
-                            return response()->json([
-                                'status' => false,
-                                'error' => 'Error creando el pago: ' . $e->getMessage()
-                            ], 500);
-                        }
-                        // $deuda = $this->mensualidadService->getCantidadDeudas($factura->user_id);
-                        // if ($deuda < 3) {
-                        //     $this->userService->cambiarEstado($factura->user_id, 1);
-                        // } else if ($deuda < 6) {
-                        //     $this->userService->cambiarEstado($factura->user_id, 0);
-                        // } else if ($deuda < 11) {
-                        //     $this->userService->cambiarEstado($factura->user_id, 3);
-                        // } else {
-                        //     $this->userService->cambiarEstado($factura->user_id, 4);
-                        // }
-                    }
-                }
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'error' => 'Error retrieving payment details from Mercado Pago'
-                ], 200);
-            }
+        if (!$respuesta || ($respuesta['status'] ?? '') !== 'approved') {
+            return response()->json(['status' => false], 200);
         }
-        return response()->json([
-            'status' => true,
-            'message' => 'Pago exitoso'
-        ], 200);
+
+        $external_reference = $respuesta['external_reference'] ?? null;
+        if (!$external_reference) {
+            return response()->json(['status' => false], 400);
+        }
+
+        $factura = Mensualidades::find($external_reference);
+        if (!$factura) {
+            return response()->json(['status' => false], 404);
+        }
+
+        $existe = Pagos::where('referencia_pago', $paymentId)->exists();
+        if ($existe) {
+            return response()->json(['status' => true, 'message' => 'Pago ya procesado']);
+        }
+
+        try {
+            $monto_pagado = $respuesta['transaction_amount'];
+            $fechaPago = Carbon::parse($respuesta['date_created'])->format('Y-m-d H:i:s');
+            $deudas = $this->mensualidadService->getDeudasPendientes($factura->user_id);
+
+            foreach ($deudas as $mensualidad) {
+                $monto_restante = $mensualidad->valor - $mensualidad->total_pagos;
+
+                if ($monto_pagado >= $monto_restante && $monto_restante > 0) {
+                    Pagos::create([
+                        'mensualidad_id' => $mensualidad->id,
+                        'email' => $respuesta['payer']['email'] ?? null,
+                        'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
+                        'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
+                        'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
+                        'referencia_pago' => $paymentId,
+                        'monto' => $monto_restante,
+                        'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
+                        'fecha_pago' => $fechaPago,
+                    ]);
+                    $mensualidad->update(['estado' => true]);
+                    $this->userService->confirmarPago($factura->user_id, $mensualidad->id, "Aprobado");
+                    $monto_pagado -= $monto_restante;
+                } elseif ($monto_pagado > 0) {
+                    Pagos::create([
+                        'mensualidad_id' => $mensualidad->id,
+                        'email' => $respuesta['payer']['email'] ?? null,
+                        'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
+                        'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
+                        'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
+                        'referencia_pago' => $paymentId,
+                        'monto' => $monto_pagado,
+                        'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
+                        'fecha_pago' => $fechaPago,
+                    ]);
+                    break;
+                }
+            }
+            return response()->json(['status' => true, 'message' => 'Pago procesado']);
+        } catch (\Exception $e) {
+            Log::error('Error al procesar el pago', ['error' => $e->getMessage()]);
+            return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 
-    public function webhookCuotasBaile(Request $request)
+    public function webhookCuotasBaile($paymentId)
     {
-        $data = $request->all();
-        if (isset($data['type']) && $data['type'] == 'payment') {
-            $paymentId = $data['data']['id'];
-            $respuesta =  Http::get("https://api.mercadopago.com/v1/payments/$paymentId?access_token=" . env('ACCESS_TOKEN'))->json();
-            if ($respuesta) {
-                $external_reference = $respuesta['external_reference'];
-                if ($data['action'] == 'payment.created') {
-                    $pago = PagosCuotasBaile::where('referencia_pago', $paymentId)->first();
-                    if (!$pago && $respuesta['status'] == 'approved') {
-                        $factura = CuotasBaile::where('id', $external_reference)->first();
-                        if ($factura) {
-                            // $factura->update(['estado' => true]);
-                            try {
-                                PagosCuotasBaile::create([
-                                    'cuotas_baile_id' => $external_reference,
-                                    'email' => $respuesta['payer']['email'] ?? null,
-                                    'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
-                                    'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
-                                    'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
-                                    'referencia_pago' => $paymentId,
-                                    'monto' => $respuesta['transaction_amount'] ?? 0,
-                                    'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
-                                    'fecha_pago' => $respuesta['date_created'] ?? null,
-                                ]);
-                            } catch (\Exception $e) {
-                                return response()->json([
-                                    'status' => false,
-                                    'error' => 'Error creando el pago: ' . $e->getMessage()
-                                ], 500);
-                            }
-                        }
-                    }
-                }
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'error' => 'Error retrieving payment details from Mercado Pago'
-                ], 200);
-            }
+        $respuesta = Http::get("https://api.mercadopago.com/v1/payments/$paymentId?access_token=" . $this->accessToken)->json();
+
+        if (!$respuesta || ($respuesta['status'] ?? '') !== 'approved') {
+            return response()->json(['status' => false], 200);
         }
-        return response()->json([
-            'status' => true,
-            'message' => 'Pago exitoso'
-        ], 200);
+
+        $external_reference = $respuesta['external_reference'] ?? null;
+        if (!$external_reference) {
+            return response()->json(['status' => false], 400);
+        }
+
+        $factura = CuotasBaile::find($external_reference);
+        if (!$factura) {
+            return response()->json(['status' => false], 404);
+        }
+
+        $existe = PagosCuotasBaile::where('referencia_pago', $paymentId)->exists();
+        if ($existe) {
+            return response()->json(['status' => true, 'message' => 'Pago ya procesado']);
+        }
+
+        try {
+            $fechaPago = Carbon::parse($respuesta['date_created'])->format('Y-m-d H:i:s');
+
+            PagosCuotasBaile::create([
+                'cuotas_baile_id' => $factura->id,
+                'email' => $respuesta['payer']['email'] ?? null,
+                'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
+                'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
+                'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
+                'referencia_pago' => $paymentId,
+                'monto' => $respuesta['transaction_amount'] ?? 0,
+                'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
+                'fecha_pago' => $fechaPago,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $factura->update(['estado' => true]);
+
+            return response()->json(['status' => true, 'message' => 'Pago de cuota registrado']);
+        } catch (\Exception $e) {
+            Log::error('Error al registrar pago de cuota de baile', ['error' => $e->getMessage()]);
+            return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }

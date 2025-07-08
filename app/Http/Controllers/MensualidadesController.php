@@ -10,6 +10,7 @@ use App\services\UserService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\MercadoPagoConfig;
@@ -37,9 +38,12 @@ class MensualidadesController extends Controller
     public function crearPreferencia(Request $request)
     {
         MercadoPagoConfig::setAccessToken(config('mercadopago.access_token'));
+
         $factura = $this->getFactura($request->id);
         $valor = $request->filled('valor') ? $request->valor : $factura->valor;
+
         $cliente = new PreferenceClient();
+
         $preference = $cliente->create([
             "external_reference" => (string) $factura->id,
             "items" => [
@@ -50,13 +54,16 @@ class MensualidadesController extends Controller
                     "description" => "Mensualidad",
                 ]
             ],
+            "metadata" => [
+                "tipo_pago" => "Mensualidad"
+            ],
             "back_urls" => [
                 "success" => "https://www.clubsincelejo.prismau.co/pagos-mensualidades",
                 "failure" => "https://www.clubsincelejo.prismau.co/pagos-mensualidades",
                 "pending" => "https://www.clubsincelejo.prismau.co/pagos-mensualidades",
             ],
             "auto_return" => "approved",
-            "notification_url" => "https://www.apiclubsincelejo.prismau.co/api/webhook",
+            "notification_url" => "https://apiclubsincelejo.prismau.co/api/webhook",
         ]);
 
         return response()->json($preference->id);
