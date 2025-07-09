@@ -56,7 +56,10 @@ class CuotasBaileController extends Controller
             "notification_url" => "https://apiclubsincelejo.prismau.co/api/webhook"
         ]);
 
-        return response()->json(['preference_id' => $preference->id]);
+        return response()->json([
+            'preference_id' => $preference->id,
+            'init_point' => $preference->init_point,
+        ], 200);
     }
 
     public function pagarCuota(Request $request)
