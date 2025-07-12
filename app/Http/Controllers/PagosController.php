@@ -8,6 +8,7 @@ use App\Models\Pagos;
 use App\Models\PagosCuotasBaile;
 use App\Models\Rubros;
 use App\Models\User;
+use App\services\CuotasBaileService;
 use App\services\MensualidadesService;
 use App\services\UserService;
 use Carbon\Carbon;
@@ -20,14 +21,17 @@ class PagosController extends Controller
 
     protected $accessToken;
     protected $mensualidadService;
+    protected $cuotasService;
     protected $userService;
 
     public function __construct(
         MensualidadesService $mensualidadService,
+        CuotasBaileService $cuotasService,
         UserService $userService
     ) {
         $this->accessToken = config('mercadopago.access_token');
         $this->mensualidadService = $mensualidadService;
+        $this->cuotasService = $cuotasService;
         $this->userService = $userService;
     }
 
@@ -35,40 +39,51 @@ class PagosController extends Controller
     {
         $rubro = Rubros::findOrFail($request->rubro_id);
         $valor = $rubro->valor;
+        $nombreRubro = strtolower(trim($rubro->rubro));
+
+        $isMensualidad = $nombreRubro === 'mensualidad';
+        $isCuotaBaile = $nombreRubro === 'cuota de baile';
+
         $usuarios = User::whereIn('Rol', [2, 3])->get();
 
-        $mensualidadesExistentes = strcasecmp($rubro->rubro, 'mensualidad') === 0
-            ? Mensualidades::whereIn('user_id', $usuarios->pluck('id'))->whereYear('fecha', $request->año)
+        $mensualidadesExistentes = $isMensualidad
+            ? Mensualidades::whereIn('user_id', $usuarios->pluck('id'))
+            ->whereYear('fecha', $request->año)
             ->where('valor', $valor)->get()->keyBy('user_id')
             : collect();
 
-        $cuotasExistentes = strcasecmp($rubro->rubro, 'Couta de baile') === 0
-            ? CuotasBaile::whereIn('user_id', $usuarios->pluck('id'))
-            ->where('año', $request->año)->where('valor', $valor)->get()->keyBy('user_id')
-            : collect();
+        $cuotasPorUsuario = [];
 
-        if (strcasecmp($rubro->rubro, 'mensualidad') === 0 && $mensualidadesExistentes->count() === $usuarios->count()) {
+        if ($isCuotaBaile) {
+            $cuotasPorUsuario = CuotasBaile::whereIn('user_id', $usuarios->pluck('id'))
+                ->where('descripcion', 'like', '%' . $request->año . '%')
+                ->get()
+                ->groupBy('user_id')
+                ->map(fn($items) => $items->count());
+
+            $todosTienenLasCuotas = $usuarios->every(function ($usuario) use ($cuotasPorUsuario, $request) {
+                return ($cuotasPorUsuario[$usuario->id] ?? 0) >= $request->cuotas;
+            });
+
+            if ($todosTienenLasCuotas) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Todos los usuarios ya tienen {$request->cuotas} cuotas de baile para el año {$request->año}.",
+                ], 200);
+            }
+        }
+
+        if ($isMensualidad && $mensualidadesExistentes->count() === $usuarios->count()) {
             return response()->json([
                 'status' => false,
                 'message' => "Todos los usuarios ya tienen mensualidades para el año {$request->año}.",
             ], 200);
         }
 
-        if (strcasecmp($rubro->rubro, 'Couta de baile') === 0 && $cuotasExistentes->count() === $usuarios->count()) {
-            return response()->json([
-                'status' => false,
-                'message' => "Todos los usuarios ya tienen cuotas de baile para el año {$request->año}.",
-            ], 200);
-        }
-
         foreach ($usuarios as $usuario) {
-            if (strcasecmp($rubro->rubro, 'mensualidad') === 0 && $mensualidadesExistentes->has($usuario->id)) {
-                continue;
-            }
-            if (strcasecmp($rubro->rubro, 'Couta de baile') === 0 && $cuotasExistentes->has($usuario->id)) {
-                continue;
-            }
-            if (strcasecmp($rubro->rubro, 'mensualidad') === 0) {
+            if ($isMensualidad) {
+                if ($mensualidadesExistentes->has($usuario->id)) continue;
+
                 for ($mes = 1; $mes <= 12; $mes++) {
                     $fechaFactura = Carbon::create($request->año, $mes, 1);
                     Mensualidades::create([
@@ -78,13 +93,24 @@ class PagosController extends Controller
                         'estado' => false,
                     ]);
                 }
-            } else {
-                CuotasBaile::create([
-                    'user_id' => $usuario->id,
-                    'año' => $request->año,
-                    'valor' => $valor,
-                    'estado' => false,
-                ]);
+            }
+
+            if ($isCuotaBaile) {
+                for ($cuota = 1; $cuota <= $request->cuotas; $cuota++) {
+                    $descripcion = 'Cuota ' . $cuota . ' de ' . $request->año;
+                    $existe = CuotasBaile::where('user_id', $usuario->id)
+                        ->where('descripcion', $descripcion)
+                        ->exists();
+
+                    if (!$existe) {
+                        CuotasBaile::create([
+                            'user_id' => $usuario->id,
+                            'descripcion' => $descripcion,
+                            'valor' => $valor,
+                            'estado' => false,
+                        ]);
+                    }
+                }
             }
         }
 
@@ -146,21 +172,20 @@ class PagosController extends Controller
 
         $external_reference = $respuesta['external_reference'] ?? null;
         if (!$external_reference) {
-            return response()->json(['status' => false], 400);
+            return response()->json(['status' => false, 'message' => 'Referencia externa faltante'], 400);
         }
 
         $factura = Mensualidades::find($external_reference);
         if (!$factura) {
-            return response()->json(['status' => false], 404);
+            return response()->json(['status' => false, 'message' => 'Mensualidad no encontrada'], 404);
         }
 
-        $existe = Pagos::where('referencia_pago', $paymentId)->exists();
-        if ($existe) {
+        if (Pagos::where('referencia_pago', $paymentId)->exists()) {
             return response()->json(['status' => true, 'message' => 'Pago ya procesado']);
         }
 
         try {
-            $monto_pagado = $respuesta['transaction_amount'];
+            $monto_pagado = (float) $respuesta['transaction_amount'];
             $fechaPago = Carbon::parse($respuesta['date_created'])->format('Y-m-d H:i:s');
             $deudas = $this->mensualidadService->getDeudasPendientes($factura->user_id);
 
@@ -197,9 +222,10 @@ class PagosController extends Controller
                     break;
                 }
             }
+
             return response()->json(['status' => true, 'message' => 'Pago procesado']);
         } catch (\Exception $e) {
-            Log::error('Error al procesar el pago', ['error' => $e->getMessage()]);
+            Log::error('Error al procesar pago de mensualidad', ['error' => $e->getMessage()]);
             return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
         }
     }
@@ -214,41 +240,64 @@ class PagosController extends Controller
 
         $external_reference = $respuesta['external_reference'] ?? null;
         if (!$external_reference) {
-            return response()->json(['status' => false], 400);
+            return response()->json(['status' => false, 'message' => 'Referencia externa faltante'], 400);
         }
 
         $factura = CuotasBaile::find($external_reference);
         if (!$factura) {
-            return response()->json(['status' => false], 404);
+            return response()->json(['status' => false, 'message' => 'Cuota no encontrada'], 404);
         }
 
-        $existe = PagosCuotasBaile::where('referencia_pago', $paymentId)->exists();
-        if ($existe) {
+        if (PagosCuotasBaile::where('referencia_pago', $paymentId)->exists()) {
             return response()->json(['status' => true, 'message' => 'Pago ya procesado']);
         }
 
         try {
+            $monto_pagado = (float) $respuesta['transaction_amount'];
             $fechaPago = Carbon::parse($respuesta['date_created'])->format('Y-m-d H:i:s');
+            $deudas = $this->cuotasService->getDeudasPendientes($factura->user_id);
 
-            PagosCuotasBaile::create([
-                'cuotas_baile_id' => $factura->id,
-                'email' => $respuesta['payer']['email'] ?? null,
-                'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
-                'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
-                'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
-                'referencia_pago' => $paymentId,
-                'monto' => $respuesta['transaction_amount'] ?? 0,
-                'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
-                'fecha_pago' => $fechaPago,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            foreach ($deudas as $cuota) {
+                $monto_restante = $cuota->valor - $cuota->total_pagos;
 
-            $factura->update(['estado' => true]);
+                if ($monto_pagado >= $monto_restante && $monto_restante > 0) {
+                    PagosCuotasBaile::create([
+                        'cuotas_baile_id' => $cuota->id,
+                        'email' => $respuesta['payer']['email'] ?? null,
+                        'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
+                        'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
+                        'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
+                        'referencia_pago' => $paymentId,
+                        'monto' => $monto_restante,
+                        'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
+                        'fecha_pago' => $fechaPago,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $cuota->update(['estado' => true]);
+                    $this->userService->confirmarPagoBailes($cuota->user_id, $cuota->id, "Aprobado");
+                    $monto_pagado -= $monto_restante;
+                } elseif ($monto_pagado > 0) {
+                    PagosCuotasBaile::create([
+                        'cuotas_baile_id' => $cuota->id,
+                        'email' => $respuesta['payer']['email'] ?? null,
+                        'nombre' => ($respuesta['payer']['first_name'] ?? '') . ' ' . ($respuesta['payer']['last_name'] ?? ''),
+                        'identificacion' => $respuesta['payer']['identification']['number'] ?? null,
+                        'metodo_pago' => $respuesta['payment_method']['type'] ?? null,
+                        'referencia_pago' => $paymentId,
+                        'monto' => $monto_pagado,
+                        'tarjeta' => $respuesta['card']['last_four_digits'] ?? null,
+                        'fecha_pago' => $fechaPago,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    break;
+                }
+            }
 
-            return response()->json(['status' => true, 'message' => 'Pago de cuota registrado']);
+            return response()->json(['status' => true, 'message' => 'Pago de cuota procesado correctamente']);
         } catch (\Exception $e) {
-            Log::error('Error al registrar pago de cuota de baile', ['error' => $e->getMessage()]);
+            Log::error('Error al procesar pago de cuota de baile', ['error' => $e->getMessage()]);
             return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
         }
     }

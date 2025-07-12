@@ -11,7 +11,7 @@ class CuotasBaile extends Model
 
     protected $fillable = [
         'user_id',
-        'año',
+        'descripcion',
         'valor',
         'estado',
     ];

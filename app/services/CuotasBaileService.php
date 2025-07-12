@@ -2,6 +2,7 @@
 
 namespace App\services;
 
+use App\Models\CuotasBaile;
 use App\Models\User;
 
 class CuotasBaileService
@@ -21,5 +22,10 @@ class CuotasBaileService
             'status' => true,
             'message' => 'Cuotas de baile actualizadas',
         ]);
+    }
+
+    public function getDeudasPendientes($id)
+    {
+        return CuotasBaile::where('user_id', $id)->where('estado', false)->get();
     }
 }

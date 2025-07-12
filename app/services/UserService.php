@@ -3,6 +3,7 @@
 namespace App\services;
 
 use App\Mail\pagoEmail;
+use App\Models\CuotasBaile;
 use App\Models\Mensualidades;
 use App\Models\User;
 use Carbon\Carbon;
@@ -59,6 +60,16 @@ class UserService
         $socio = $user->asociado ?? $user->adherente;
         if ($user) {
             Mail::to($socio->Correo)->send(new pagoEmail($estado, $periodo, $mensualidad->valor));
+        }
+    }
+
+    public function confirmarPagoBailes($id, $pago, $estado)
+    {
+        $user = User::where('id', $id)->with(['asociado', 'adherente'])->first();
+        $cuota = CuotasBaile::where('id', $pago)->first();
+        $socio = $user->asociado ?? $user->adherente;
+        if ($user) {
+            Mail::to($socio->Correo)->send(new pagoEmail($estado, $cuota->descripcion, $cuota->valor));
         }
     }
 

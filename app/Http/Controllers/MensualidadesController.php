@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\MercadoPagoConfig;
 use Illuminate\Support\Str;
@@ -35,12 +36,92 @@ class MensualidadesController extends Controller
         return Mensualidades::find($id);
     }
 
+    public function validatePago($request)
+    {
+        $rules = [
+            'mensualidad_id' => 'required|filled',
+            'metodo_pago' => 'required|filled',
+            'referencia_pago' => 'required|filled',
+            'soporte' => 'required|filled',
+        ];
+
+        $messages = [
+            'mensualidad_id.required' => 'La cuota es obligatoria.',
+            'metodo_pago.required' => 'El metodo de pago es obligatorio.',
+            'referencia_pago.required' => 'La referencia de pago es obligatoria.',
+            'soporte.required' => 'El soporte de pago es obligatorio.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return [
+                'status' => false,
+                'errors' => $validator->errors()->all()
+            ];
+        }
+
+        return [
+            'status' => true,
+            'message' => 'Validación exitosa'
+        ];
+    }
+
+    protected function registrarPagoMensualidad($mensualidadId, $monto, Request $request, $url = null)
+    {
+        Pagos::create([
+            "mensualidad_id" => $mensualidadId,
+            "monto" => $monto,
+            "referencia_pago" => $request->referencia_pago,
+            "fecha_pago" => now(),
+            "metodo_pago" => $request->metodo_pago,
+            "soporte" => $url,
+        ]);
+    }
+
     public function crearPreferencia(Request $request)
     {
         MercadoPagoConfig::setAccessToken(config('mercadopago.access_token'));
 
         $factura = $this->getFactura($request->id);
-        $valor = $request->filled('valor') ? $request->valor : $factura->valor;
+        $valor_factura = (float) $factura->valor;
+        $pagos_actuales = (float) $factura->total_pagos;
+        $saldo_factura = $valor_factura - $pagos_actuales;
+
+        $valor = $saldo_factura;
+
+        if ($request->filled('valor')) {
+            $valorIngresado = (float) $request->valor;
+
+            if ($valorIngresado < $saldo_factura) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => ["El valor ingresado no cubre el saldo pendiente de la mensualidad principal: $saldo_factura."]
+                ], 200);
+            }
+
+            $deudas = $this->mensualidadService->getDeudasPendientes($factura->user_id)
+                ->filter(fn($item) => $item->id !== $factura->id);
+
+            if ($pagos_actuales > 0 && $deudas->isEmpty() && $valorIngresado > $saldo_factura) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => ["El valor ingresado excede el saldo pendiente de la mensualidad, y no hay otras mensualidades pendientes para aplicar el excedente."]
+                ], 200);
+            }
+
+            $total_deuda = $this->mensualidadService->getDeudasPendientes($factura->user_id)
+                ->sum(fn($m) => $m->valor - $m->total_pagos);
+
+            if ($valorIngresado > $total_deuda) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => ["El valor ingresado excede la deuda total del usuario: $total_deuda."]
+                ], 200);
+            }
+
+            $valor = $valorIngresado;
+        }
 
         $cliente = new PreferenceClient();
 
@@ -50,7 +131,7 @@ class MensualidadesController extends Controller
                 [
                     "title" => "Factura " . $factura->id,
                     "quantity" => 1,
-                    "unit_price" => (float) $valor,
+                    "unit_price" => $valor,
                     "description" => "Mensualidad",
                 ]
             ],
@@ -67,6 +148,7 @@ class MensualidadesController extends Controller
         ]);
 
         return response()->json([
+            'status' => true,
             'preference_id' => $preference->id,
             'init_point' => $preference->init_point,
         ], 200);
@@ -74,8 +156,40 @@ class MensualidadesController extends Controller
 
     public function pagarMensualidad(Request $request)
     {
+        $validation = $this->validatePago($request);
+        if (!$validation['status']) return $validation;
+
         $factura = $this->getFactura($request->mensualidad_id);
-        $monto_pagado = $request->valor !== null ? $request->valor : $factura->valor;
+
+        $monto_pagado = $request->valor ?? $factura->valor;
+        $pagos_actuales = (float) $factura->total_pagos;
+        $valor_cuota = (float) $factura->valor;
+        $saldo_factura = $valor_cuota - $pagos_actuales;
+
+        $deudas_pendientes = $this->mensualidadService->getDeudasPendientes($factura->user_id)
+            ->filter(fn($item) => $item->id !== $factura->id);
+
+        if ($monto_pagado < $saldo_factura) {
+            return response()->json([
+                'status' => false,
+                'errors' => ["El valor ingresado no cubre el saldo pendiente de la mensualidad principal: $saldo_factura."]
+            ], 200);
+        }
+
+        $deudas_completas = collect([$factura])->merge($deudas_pendientes);
+
+        $total_deuda_pendiente = $deudas_completas->sum(function ($mensualidad) {
+            return (float) $mensualidad->valor - (float) $mensualidad->total_pagos;
+        });
+
+        if ($monto_pagado > $total_deuda_pendiente) {
+            return response()->json([
+                'status' => false,
+                'errors' => ["El monto ingresado excede el total de la deuda pendiente del usuario: $total_deuda_pendiente."]
+            ], 200);
+        }
+
+        $url = null;
         if ($request->hasFile('soporte')) {
             $imagen = $request->file('soporte');
             $nameImage = Str::slug($factura->fecha) . '_' . time() . '.' . $imagen->getClientOriginalExtension();
@@ -84,36 +198,20 @@ class MensualidadesController extends Controller
         }
 
         if ($request->valor !== null) {
-            $deudas_pendientes = $this->mensualidadService->getDeudasPendientes($factura->user_id);
-
-            foreach ($deudas_pendientes as $mensualidad) {
+            foreach ($deudas_completas as $mensualidad) {
                 $totalPagos = (float) $mensualidad->total_pagos;
                 $monto_restante = (float) $mensualidad->valor - $totalPagos;
 
                 if ($monto_pagado >= $monto_restante) {
                     if ($monto_restante > 0) {
-                        Pagos::create([
-                            "mensualidad_id" => $mensualidad->id,
-                            "monto" => $monto_restante,
-                            "referencia_pago" => $request->referencia_pago,
-                            "fecha_pago" => now(),
-                            "metodo_pago" => $request->metodo_pago,
-                            "soporte" => $url,
-                        ]);
+                        $this->registrarPagoMensualidad($mensualidad->id, $monto_restante, $request, $url);
                     }
                     $mensualidad->update(['estado' => true]);
                     $this->userService->confirmarPago($factura->user_id, $mensualidad->id, "Aprobado");
-                    $monto_pagado -= (float) $monto_restante;
+                    $monto_pagado -= $monto_restante;
                 } else {
                     if ($monto_pagado > 0) {
-                        Pagos::create([
-                            "mensualidad_id" => $mensualidad->id,
-                            "monto" => $monto_pagado,
-                            "referencia_pago" => $request->referencia_pago,
-                            "fecha_pago" => now(),
-                            "metodo_pago" => $request->metodo_pago,
-                            "soporte" => $url,
-                        ]);
+                        $this->registrarPagoMensualidad($mensualidad->id, $monto_pagado, $request, $url);
                     }
                     $monto_pagado = 0;
                     break;
@@ -121,26 +219,9 @@ class MensualidadesController extends Controller
             }
         } else {
             $factura->update(['estado' => true]);
-            Pagos::create([
-                "mensualidad_id" => $factura->id,
-                "monto" => $factura->valor,
-                "referencia_pago" => $request->referencia_pago,
-                "fecha_pago" => now(),
-                "metodo_pago" => $request->metodo_pago,
-                "soporte" => $url,
-            ]);
+            $this->registrarPagoMensualidad($factura->id, $factura->valor, $request, $url);
             $this->userService->confirmarPago($factura->user_id, $factura->id, "Aprobado");
         }
-        // $deuda = $this->mensualidadService->getCantidadDeudas($factura->user_id);
-        // if ($deuda < 3) {
-        //     $this->userService->cambiarEstado($factura->user_id, 1);
-        // } else if ($deuda < 6) {
-        //     $this->userService->cambiarEstado($factura->user_id, 0);
-        // } else if ($deuda < 11) {
-        //     $this->userService->cambiarEstado($factura->user_id, 3);
-        // } else {
-        //     $this->userService->cambiarEstado($factura->user_id, 4);
-        // }
 
         return response()->json([
             'status' => true,
