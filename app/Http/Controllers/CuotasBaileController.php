@@ -33,7 +33,7 @@ class CuotasBaileController extends Controller
             'cuotas_baile_id' => 'required|filled',
             'metodo_pago' => 'required|filled',
             'referencia_pago' => 'required|filled',
-            'soporte' => 'required|filled',
+            'soporte' => 'required|mimes:jpg,png,pdf|max:5120|filled',
         ];
 
         $messages = [
@@ -41,6 +41,8 @@ class CuotasBaileController extends Controller
             'metodo_pago.required' => 'El metodo de pago es obligatorio.',
             'referencia_pago.required' => 'La referencia de pago es obligatoria.',
             'soporte.required' => 'El soporte de pago es obligatorio.',
+            'soporte.max' => 'El soporte de pago no debe superar los 5MB.',
+            'soporte.mimes' => 'El soporte de pago debe ser un archivo de tipo jpg, png o pdf.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);

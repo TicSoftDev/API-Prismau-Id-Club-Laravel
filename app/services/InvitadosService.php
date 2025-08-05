@@ -44,7 +44,7 @@ class InvitadosService
 
     protected function obtenerUsuario($userId)
     {
-        $user = User::with(['asociado', 'adherente'])->find($userId);
+        $user = User::with(['asociado', 'adherente', 'familiar'])->find($userId);
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -84,6 +84,15 @@ class InvitadosService
                 'Apellidos' => $user->adherente->Apellidos,
                 'TipoDocumento' => $user->adherente->TipoDocumento,
                 'Documento' => $user->adherente->Documento,
+            ];
+        }
+
+        if ($user->Rol == 5 && $user->familiar) {
+            return [
+                'Nombre' => $user->familiar->Nombre,
+                'Apellidos' => $user->familiar->Apellidos,
+                'TipoDocumento' => $user->familiar->TipoDocumento,
+                'Documento' => $user->familiar->Documento,
             ];
         }
 

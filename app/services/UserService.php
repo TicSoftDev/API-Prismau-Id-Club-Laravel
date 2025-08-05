@@ -58,9 +58,9 @@ class UserService
         $mensualidad = Mensualidades::where('id', $pago)->first();
         $periodo = Carbon::parse($mensualidad->fecha)->translatedFormat('F \d\e Y');
         $socio = $user->asociado ?? $user->adherente;
-        if ($user) {
-            Mail::to($socio->Correo)->send(new pagoEmail($estado, $periodo, $mensualidad->valor));
-        }
+        // if ($user) {
+            // Mail::to($socio->Correo)->send(new pagoEmail($estado, $periodo, $mensualidad->valor));
+        // }
     }
 
     public function confirmarPagoBailes($id, $pago, $estado)
@@ -68,9 +68,9 @@ class UserService
         $user = User::where('id', $id)->with(['asociado', 'adherente'])->first();
         $cuota = CuotasBaile::where('id', $pago)->first();
         $socio = $user->asociado ?? $user->adherente;
-        if ($user) {
-            Mail::to($socio->Correo)->send(new pagoEmail($estado, $cuota->descripcion, $cuota->valor));
-        }
+        // if ($user) {
+            // Mail::to($socio->Correo)->send(new pagoEmail($estado, $cuota->descripcion, $cuota->valor));
+        // }
     }
 
     public function resetPassword($id)

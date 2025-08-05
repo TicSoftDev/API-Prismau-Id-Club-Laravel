@@ -232,7 +232,7 @@ class AsociadoController extends Controller
                 'Motivo' => $request->Motivo
             ]);
 
-            Mail::to($asociado->Correo)->send(new EstadosMail($estadoString, $request->Motivo));
+            // Mail::to($asociado->Correo)->send(new EstadosMail($estadoString, $request->Motivo));
             DB::commit();
             return response()->json([
                 "status" => true,

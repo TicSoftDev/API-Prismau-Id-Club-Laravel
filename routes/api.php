@@ -31,6 +31,7 @@ use App\Models\CuotasBaile;
 use App\Models\Pagos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use NotificationChannels\ExpoPushNotifications\Http\ExpoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+//auth
 Route::post("login", [AuthController::class, "login"]);
 Route::post("contratos", [ContratosController::class, "crearSolicitudContratoApp"]);
 Route::post('reset-password', [AuthController::class, 'sendResetCode']);
@@ -113,6 +115,7 @@ Route::group([
     Route::post('familiares/asociado', [FamiliarController::class, 'crearFamiliaresAsociado']);
     Route::post('familiares/adherente', [FamiliarController::class, 'crearFamiliaresAdherente']);
     Route::post('familiares/imagen/{id}', [FamiliarController::class, 'changeImagen']);
+    Route::get('familiares/pareja/{id}', [FamiliarController::class, 'nucleoFamiliarDesdeEsposa']);
     Route::get('familiares/cantidad', [FamiliarController::class, 'contFamiliares']);
     Route::get('familiares/cantidad/{id}/{rol}', [FamiliarController::class, 'contFamiliaresAsociado']);
     Route::get('familiares/{id}/{rol}', [FamiliarController::class, 'familiaresAsociado']);
@@ -234,4 +237,8 @@ Route::group([
 
     //Pagos Cuota Baile
     Route::get('pagos-cuotas-baile', [PagosCuotasBaileController::class, 'getPagos']);
+
+    //Push notifications
+    Route::post('expo/subscribe', [ExpoController::class, 'subscribe']);
+    Route::post('expo/unsubscribe', [ExpoController::class, 'unsubscribe']);
 });

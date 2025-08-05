@@ -36,7 +36,7 @@ class AuthController extends Controller
                     "message" => "Inactivo"
                 ]);
             }
-
+            $socio = null;
             if ($user->Rol == 0 || $user->Rol == 1) {
                 $usuario = $user->admin;
             } else if ($user->Rol == 2) {
@@ -47,13 +47,23 @@ class AuthController extends Controller
                 $usuario = $user->empleado;
             } else if ($user->Rol == 5) {
                 $usuario = $user->familiar;
+                if ($user->familiar->Parentesco == "Esposo (a)") {
+                    if ($user->familiar->asociado) {
+                        $socio = $user->familiar->asociado;
+                        $socio->Rol = 2;
+                    } elseif ($user->familiar->adherente) {
+                        $socio = $user->familiar->adherente;
+                        $socio->Rol = 3;
+                    }
+                }
             }
 
             return response()->json([
                 "status" => true,
-                "user" => $usuario,
+                "token" => $token,
                 "credenciales" => $user,
-                "token" => $token
+                "user" => $usuario,
+                "socio" => $socio,
             ]);
         }
 
@@ -126,12 +136,11 @@ class AuthController extends Controller
             'message' => 'Código válido'
         ], 200);
     }
-
     public function resetPassword(Request $request)
     {
         $request->validate([
             'code' => 'required|string',
-            'new_password' => 'required|string|min:8',
+            'new_password' => 'required|string',
         ]);
 
         $passwordReset = DB::table('password_reset_tokens')

@@ -14,5 +14,11 @@ class Noticia extends Model
         'Descripcion',
         'Imagen',
         'Vencimiento',
+        'Destinatario',
+        'Hora',
+        'Tipo',
+        'Correo',
+        'Push',
+        'Fecha'
     ];
 }

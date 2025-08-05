@@ -14,9 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class FamiliarController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function familiaresAsociado($id,  $rol)
     {
         if ($rol == "Adherente") {
@@ -33,18 +31,12 @@ class FamiliarController extends Controller
         return response()->json($familiar);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function contFamiliares()
     {
         $familiar = Familiar::count();
         return response()->json($familiar);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function crearFamiliaresAsociado(Request $request)
     {
         DB::beginTransaction();
@@ -161,9 +153,6 @@ class FamiliarController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function contFamiliaresAsociado(String $id,  $rol)
     {
         if ($rol == "Adherente") {
@@ -174,9 +163,6 @@ class FamiliarController extends Controller
         return response()->json($familiar);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function actualizarFamiliar(Request $request, string $id)
     {
         try {
@@ -226,9 +212,6 @@ class FamiliarController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function eliminarFamiliar(string $id)
     {
         $familiar = User::find($id);
@@ -271,5 +254,16 @@ class FamiliarController extends Controller
                 "message" => "No se pudo agregar"
             ],);
         }
+    }
+
+    public function nucleoFamiliarDesdeEsposa($id)
+    {
+        $familiar = Familiar::with(['asociado.familiares', 'adherente.familiares'])->find($id);
+        $socio = $familiar->asociado ?? $familiar->adherente;
+        $familiares = $socio->familiares->filter(function ($f) use ($id) {
+            return $f->id != $id;
+        })->values();
+        $nucleo = collect([$socio])->merge($familiares);
+        return response()->json($nucleo);
     }
 }
