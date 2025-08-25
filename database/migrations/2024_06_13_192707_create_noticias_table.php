@@ -17,6 +17,12 @@ return new class extends Migration
             $table->text('Descripcion');
             $table->string('Imagen')->nullable();
             $table->date('Vencimiento');
+            $table->date('Fecha');
+            $table->time('Hora');
+            $table->string('Tipo');
+            $table->string('Destinatario');
+            $table->boolean('Correo')->nullable(true);
+            $table->boolean('Push')->nullable(true);
             $table->timestamps();
         });
     }

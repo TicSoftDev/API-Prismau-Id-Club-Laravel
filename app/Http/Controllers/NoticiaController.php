@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use function dispatch;
 
 class NoticiaController extends Controller
 {
@@ -61,16 +62,7 @@ class NoticiaController extends Controller
             $validation = $this->validateNoticia($request);
             if (!$validation['status']) return $validation;
 
-            $relacionesPorRol = [
-                2 => 'asociado',
-                3 => 'adherente',
-                4 => 'familiar',
-                5 => 'empleado',
-                6 => 'empleado',
-            ];
-
-            $rolId = (int) $request->destinatario;
-            $relacion = $relacionesPorRol[$rolId] ?? null;
+            $rolId = (int) $request->Destinatario;
 
             $noticia = new Noticia([
                 "Titulo" => $request->Titulo,
@@ -81,15 +73,14 @@ class NoticiaController extends Controller
                 "Tipo" => $request->Tipo,
                 "Correo" => $request->correo,
                 "Push" => $request->push,
-                "Destinatario" => $request->Destinatario,
+                "Destinatario" => $rolId,
             ]);
 
             if ($request->hasFile('Imagen')) {
                 $imagen = $request->file('Imagen');
                 $nameImage = Str::random(10) . '.' . $imagen->getClientOriginalExtension();
                 $imagen = $imagen->storeAs('public/noticias', $nameImage);
-                $url = Storage::url($imagen);
-                $noticia->Imagen = $url;
+                $noticia->Imagen = Storage::url($imagen);
             }
 
             $noticia->save();
@@ -106,15 +97,17 @@ class NoticiaController extends Controller
             //     }
             // }
 
-            if ($request->push === true) {
-                dispatch(new EnviarNotificacionNoticia($rolId, $noticia));
-            }
-
-            return response()->json([
+            $response = response()->json([
                 'status'  => true,
-                'message' => 'Evento creado con éxito',
+                'message' => 'Noticia creada correctamente',
             ], 201);
-        } catch (Exception $e) {
+
+            if (filter_var($request->push, FILTER_VALIDATE_BOOLEAN)) {
+                EnviarNotificacionNoticia::dispatch($rolId, $noticia->id);
+            }
+            return $response;
+        } catch (\Exception $e) {
+            Log::error("❌ Error en crearNoticia: {$e->getMessage()}");
             return response()->json([
                 "status" => false,
                 "message" => "Error en el servidor: " . $e->getMessage()

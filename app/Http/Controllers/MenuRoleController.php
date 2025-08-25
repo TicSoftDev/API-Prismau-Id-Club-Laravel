@@ -59,6 +59,13 @@ class MenuRoleController extends Controller
         $menus = $rol->menus()->where('type', 'pagos')->get();
         return response()->json($menus);
     }
+    
+    public function menusRoleFinanzas($id)
+    {
+        $rol = Rol::findOrFail($id);
+        $menus = $rol->menus()->where('type', 'finanzas')->get();
+        return response()->json($menus);
+    }
 
     public function menusRolePerfil($id)
     {

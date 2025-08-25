@@ -108,4 +108,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(User::class);
     }
+
+    public function expoTokens()
+    {
+        return $this->hasMany(ExpoToken::class);
+    }
+
+    public function routeNotificationForExpo($notification): array
+{
+    return $this->expoTokens()->where('enabled', true)->pluck('token')->toArray();
+}
 }

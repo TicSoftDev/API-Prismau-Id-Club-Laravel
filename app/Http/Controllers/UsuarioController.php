@@ -24,6 +24,16 @@ class UsuarioController extends Controller
         return $this->userService->getSociosConPrecios();
     }
 
+    public function getSaldosSocios()
+    {
+        return $this->userService->getSaldosSocios();
+    }
+
+    public function getContabilidadGeneral()
+    {
+        return $this->userService->getContabilidadGeneral();
+    }
+
     public function filtroUsuarios()
     {
         $users = User::with(['asociado', 'adherente', 'empleado', 'familiar'])->get();

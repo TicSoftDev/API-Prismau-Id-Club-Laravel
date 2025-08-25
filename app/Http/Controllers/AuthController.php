@@ -43,7 +43,7 @@ class AuthController extends Controller
                 $usuario = $user->asociado;
             } else if ($user->Rol == 3) {
                 $usuario = $user->adherente;
-            } else if ($user->Rol == 4 || $user->Rol == 6) {
+            } else if ($user->Rol == 4 || $user->Rol == 6 || $user->Rol == 7) {
                 $usuario = $user->empleado;
             } else if ($user->Rol == 5) {
                 $usuario = $user->familiar;

@@ -12,6 +12,7 @@ use App\Http\Controllers\EncuestasController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\EspacioController;
 use App\Http\Controllers\EstadosController;
+use App\Http\Controllers\ExpoTokenController;
 use App\Http\Controllers\FamiliarController;
 use App\Http\Controllers\InvitadoController;
 use App\Http\Controllers\MensualidadesController;
@@ -76,6 +77,8 @@ Route::group([
 
     //usuario
     Route::get('usuario/socios', [UsuarioController::class, 'consultarSociosConValores']);
+    Route::get('usuario/saldos', [UsuarioController::class, 'getSaldosSocios']);
+    Route::get('usuario/contabilidad', [UsuarioController::class, 'getContabilidadGeneral']);
     Route::get('usuario/{id}', [UsuarioController::class, 'buscarUsuario']);
     Route::get('usuario', [UsuarioController::class, 'filtroUsuarios']);
     Route::put('usuario/{id}', [UsuarioController::class, 'cambiarPassword']);
@@ -212,6 +215,7 @@ Route::group([
     Route::get('menus/rol/{id}/portal', [MenuRoleController::class, 'menusRolePortal']);
     Route::get('menus/rol/{id}/bienestar', [MenuRoleController::class, 'menusRoleBienestar']);
     Route::get('menus/rol/{id}/pagos', [MenuRoleController::class, 'menusRolePagos']);
+    Route::get('menus/rol/{id}/finanzas', [MenuRoleController::class, 'menusRoleFinanzas']);
     Route::get('menus/rol/{id}/perfil', [MenuRoleController::class, 'menusRolePerfil']);
     Route::delete('menus/rol/{menuId}/{rolId}', [MenuRoleController::class, 'eliminarMenuDeRol']);
 
@@ -239,6 +243,5 @@ Route::group([
     Route::get('pagos-cuotas-baile', [PagosCuotasBaileController::class, 'getPagos']);
 
     //Push notifications
-    Route::post('expo/subscribe', [ExpoController::class, 'subscribe']);
-    Route::post('expo/unsubscribe', [ExpoController::class, 'unsubscribe']);
+    Route::post('expo/token', [ExpoTokenController::class, 'store']);
 });

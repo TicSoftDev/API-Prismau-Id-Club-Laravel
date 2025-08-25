@@ -46,11 +46,6 @@ class Asociado extends Model
         return $this->hasMany(Familiar::class, 'asociado_id');
     }
 
-    public function hobbies()
-    {
-        return $this->belongsToMany(Hobby::class, 'personal_hobby');
-    }
-
     public function adherentes()
     {
         return $this->belongsTo(Adherente::class);

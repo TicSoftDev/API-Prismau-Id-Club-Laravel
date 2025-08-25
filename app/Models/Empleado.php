@@ -28,8 +28,15 @@ class Empleado extends Model
         'Estado',
     ];
 
+    protected $appends = ['Rol'];
+
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getRolAttribute()
+    {
+        return $this->user?->Rol;
     }
 }

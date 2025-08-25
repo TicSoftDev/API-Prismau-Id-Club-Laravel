@@ -50,3 +50,9 @@ Route::get('/storage-link-create', function () {
     $linkFolder = $_SERVER['DOCUMENT_ROOT'] . '/storage';
     symlink($targetFolder, $linkFolder);
 });
+
+Route::get('/test-push/{id}', function ($id) {
+    $user = \App\Models\User::find($id);
+    $user->notify(new \App\Notifications\Notificacion('Prueba', 'Cuerpo de la notificación'));
+    return 'Notificación enviada';
+});

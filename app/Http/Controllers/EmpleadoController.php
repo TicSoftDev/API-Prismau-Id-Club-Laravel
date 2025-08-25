@@ -10,35 +10,74 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class EmpleadoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function empleados()
+
+    public function validarEmpleado($request, $userId = null)
     {
-        $empleados = Empleado::all()
-            ->sortBy('Nombre');
-        return response()->json($empleados->values()->all());
+        $rules = [
+            'Nombre' => 'required',
+            'Apellidos' => 'required',
+            'Correo' => 'required|email',
+            'Telefono' => 'required',
+            'FechaNacimiento' => 'required',
+            'LugarNacimiento' => 'required',
+            'TipoDocumento' => 'required',
+            'Documento' => 'required|unique:users,Documento' . ($userId ? ',' . $userId : ''),
+            'Sexo' => 'required',
+            'DireccionResidencia' => 'required',
+            'CiudadResidencia' => 'required',
+            'EstadoCivil' => 'required',
+            'Cargo' => 'required',
+            'Estado' => 'required',
+        ];
+
+        if (!$userId) {
+            $rules['Rol'] = 'required';
+        }
+
+        $messages = [
+            'Nombre.required' => 'El Nombre es obligatorio.',
+            'Apellidos.required' => 'Los Apellidos son obligatorio.',
+            'Correo.required' => 'El Correo es obligatorio.',
+            'Correo.email' => 'El Correo no tiene un formato válido.',
+            'Correo.unique' => 'El Correo ya está registrado en el sistema.',
+            'Telefono.required' => 'El Telefono es obligatorio.',
+            'FechaNacimiento.required' => 'La Fecha Nacimiento es obligatorio.',
+            'LugarNacimiento.required' => 'El Lugar Nacimiento es obligatorio.',
+            'TipoDocumento.required' => 'El Tipo Documento es obligatorio.',
+            'Documento.required' => 'El Documento es obligatorio.',
+            'Documento.unique' => 'El Documento ya está registrado en el sistema.',
+            'Sexo.required' => 'El Sexo es obligatorio.',
+            'DireccionResidencia.required' => 'La Direccion Residencia es obligatorio.',
+            'CiudadResidencia.required' => 'La Ciudad Residencia es obligatorio.',
+            'EstadoCivil.required' => 'El Estado Civil es obligatorio.',
+            'Cargo.required' => 'El Cargo es obligatorio.',
+            'Estado.required' => 'El Estado es obligatorio.',
+            'Rol.required' => 'El Rol es obligatorio.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return [
+                'status' => false,
+                'errors' => $validator->errors()->all()
+            ];
+        }
+
+        return ['status' => true];
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function cantidadEmpleados()
-    {
-        $empleado = Empleado::count();
-        return response()->json($empleado);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function crearEmpleado(Request $request)
     {
+        $validation = $this->validarEmpleado($request);
+        if (!$validation['status']) return $validation;
+
         DB::beginTransaction();
         try {
             $user = User::create([
@@ -47,42 +86,30 @@ class EmpleadoController extends Controller
                 'Rol' => $request->Rol
             ]);
 
-            $empleado = new Empleado();
-            $empleado->user_id = $user->id;
-            $empleado->Nombre = $request->Nombre;
-            $empleado->Apellidos = $request->Apellidos;
-            $empleado->Correo = $request->Correo;
-            $empleado->Telefono = $request->Telefono;
-            $empleado->FechaNacimiento = $request->FechaNacimiento;
-            $empleado->LugarNacimiento = $request->LugarNacimiento;
-            $empleado->TipoDocumento = $request->TipoDocumento;
-            $empleado->Documento = $request->Documento;
-            $empleado->Sexo = $request->Sexo;
-            $empleado->DireccionResidencia = $request->DireccionResidencia;
-            $empleado->CiudadResidencia = $request->CiudadResidencia;
-            $empleado->EstadoCivil = $request->EstadoCivil;
-            $empleado->Cargo = $request->Cargo;
-            $empleado->Estado = $request->Estado;
-            $empleado->save();
+            $empleado = Empleado::create([
+                'user_id' => $user->id,
+                'Nombre' => $request->Nombre,
+                'Apellidos' => $request->Apellidos,
+                'Correo' => $request->Correo,
+                'Telefono' => $request->Telefono,
+                'FechaNacimiento' => $request->FechaNacimiento,
+                'LugarNacimiento' => $request->LugarNacimiento,
+                'TipoDocumento' => $request->TipoDocumento,
+                'Documento' => $request->Documento,
+                'Sexo' => $request->Sexo,
+                'DireccionResidencia' => $request->DireccionResidencia,
+                'CiudadResidencia' => $request->CiudadResidencia,
+                'EstadoCivil' => $request->EstadoCivil,
+                'Cargo' => $request->Cargo,
+                'Estado' => $request->Estado,
+            ]);
 
             DB::commit();
             return response()->json([
                 "status" => true,
-                "message" => "hecho"
+                "message" => "Empleado creado con exito",
+                "empleado" => $empleado
             ], 201);
-        } catch (QueryException $e) {
-            DB::rollBack();
-            $errorCode = $e->errorInfo[1];
-            if ($errorCode == 1062) {
-                return response()->json([
-                    "status" => false,
-                    "message" => "Existe"
-                ], 200);
-            }
-            return response()->json([
-                "status" => false,
-                "message" => "No se pudo agregar, error: " . $e->getMessage()
-            ], 500);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -91,45 +118,31 @@ class EmpleadoController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Empleado $empleados)
+    public function empleados()
     {
-        //
+        $empleados = Empleado::with('user')->get()->sortBy('Nombre');
+        return response()->json($empleados->values()->all());
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Empleado $empleados)
+    public function cantidadEmpleados()
     {
-        //
+        $empleado = Empleado::count();
+        return response()->json($empleado);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function actualizarEmpleado(Request $request, string $id)
     {
+        $validation = $this->validarEmpleado($request, $id);
+        if (!$validation['status']) return $validation;
         DB::beginTransaction();
-        $usuario = User::findOrFail($id);
-        $empleado = $usuario->empleado;
         try {
-            $request->validate([
-                'Documento' => 'required|string|max:255|unique:users,Documento,' . $usuario->id,
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Existe',
-                'errors' => $e->errors(),
-            ], 200);
-        }
-        try {
-            if ($usuario->Documento != $request->Documento) {
+            $usuario = User::findOrFail($id);
+            $empleado = $usuario->empleado;
+            if ($usuario->Documento != $request->Documento || $usuario->Rol != $request->Rol) {
                 $usuario->update([
                     'Documento' => $request->Documento,
+                    'password' => Hash::make($request->Documento),
+                    'Rol' => $request->Rol
                 ]);
             }
             $empleado->update([
@@ -151,7 +164,7 @@ class EmpleadoController extends Controller
             DB::commit();
             return response()->json([
                 "status" => true,
-                "message" => "hecho"
+                "message" => "Empleado actualizado con exito",
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -159,26 +172,6 @@ class EmpleadoController extends Controller
                 "message" => "Error al actualizar: " . $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function eliminarEmpleado(string $id)
-    {
-        $empleado = User::find($id);
-        if (is_null($empleado)) {
-            return response()->json(["message" => "no encontrado"], 404);
-        }
-        if ($empleado->empleado->imagen) {
-            Storage::disk('local')->delete(str_replace('/storage', 'public', $empleado->empleado->imagen));
-        }
-        $empleado->empleado->delete();
-        $empleado->delete();
-        return response()->json([
-            "status" => true,
-            "message" => "hecho"
-        ], 200);
     }
 
     public function changeImagen(Request $request, $id)
@@ -206,5 +199,22 @@ class EmpleadoController extends Controller
                 "message" => "No se pudo agregar"
             ],);
         }
+    }
+
+    public function eliminarEmpleado(string $id)
+    {
+        $empleado = User::find($id);
+        if (is_null($empleado)) {
+            return response()->json(["message" => "no encontrado"], 404);
+        }
+        if ($empleado->empleado->imagen) {
+            Storage::disk('local')->delete(str_replace('/storage', 'public', $empleado->empleado->imagen));
+        }
+        $empleado->empleado->delete();
+        $empleado->delete();
+        return response()->json([
+            "status" => true,
+            "message" => "hecho"
+        ], 200);
     }
 }

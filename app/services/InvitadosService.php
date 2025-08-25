@@ -5,6 +5,7 @@ namespace App\services;
 use App\Models\Invitado;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class InvitadosService
 {
@@ -118,29 +119,25 @@ class InvitadosService
 
     public function getEntradas()
     {
-        $entradas = Invitado::with([
-            'user.asociado' => function ($query) {
-                $query->select('id', 'Nombre', 'Apellidos', 'user_id');
-            },
-            'user.adherente' => function ($query) {
-                $query->select('id', 'Nombre', 'Apellidos', 'user_id');
-            }
-        ])->where('Status', 1)->orderBy('created_at', 'desc')->get();
+        $entradas = DB::table('invitados as i')
+            ->join('users as u', 'u.id', '=', 'i.user_id')
+            ->leftJoin('asociados as a', 'a.user_id', '=', 'u.id')
+            ->leftJoin('adherentes as ad', 'ad.user_id', '=', 'u.id')
+            ->leftJoin('familiars as f', 'f.user_id', '=', 'u.id')
+            ->where('i.Status', 1)
+            ->orderByDesc('i.created_at')
+            ->select([
+                'i.id',
+                'i.Nombre',
+                'i.Apellidos',
+                'i.TipoDocumento',
+                'i.Documento',
+                'i.created_at as fecha',
+                DB::raw('COALESCE(a.Nombre, ad.Nombre, f.Nombre) as NombreSocio'),
+                DB::raw('COALESCE(a.Apellidos, ad.Apellidos, f.Apellidos) as ApellidosSocio'),
+            ])
+            ->get();
 
-        $entradasConNombre = $entradas->map(function ($entrada) {
-            $socio = $entrada->user->asociado ?? $entrada->user->adherente;
-
-            return [
-                'id' => $entrada->id,
-                'Nombre' => $entrada->Nombre,
-                'Apellidos' => $entrada->Apellidos,
-                'TipoDocumento' => $entrada->TipoDocumento,
-                'Documento' => $entrada->Documento,
-                'NombreSocio' => $socio->Nombre,
-                'ApellidosSocio' => $socio->Apellidos,
-                'fecha' => $entrada->created_at
-            ];
-        });
-        return response()->json($entradasConNombre);
+        return response()->json($entradas);
     }
 }
