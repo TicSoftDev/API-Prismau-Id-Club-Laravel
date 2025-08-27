@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'access_token' => "APP_USR-1599972578748356-071116-78b6644bfcd6afa43eea4701e55bfb29-75182370",
+    'access_token' => "APP_USR-6791300052654351-082718-35deac5d110e4310d06916b9b54cb02a-2636673977",
 ];
